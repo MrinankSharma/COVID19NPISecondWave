@@ -14,6 +14,7 @@ seaborn = "^0.11.0"
 jupyterlab = "^2.2.9"
 appnope = "^0.1.2"
 tfp-nightly = "^0.12.0-alpha.20201208"
+pymc3 = "^3.10.0"
 
 [tool.poetry.dev-dependencies]
 
