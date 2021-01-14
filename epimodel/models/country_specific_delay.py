@@ -77,7 +77,7 @@ def model_func(data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs
 
         return 0.0, (expected_cases, expected_deaths)
 
-    _, expected_observations = output_delay_transition(output_delay_transition, 0.0, [future_cases_t, future_deaths_t, ep.DPCv_pa, ep.DPDv_pa])
+    _, expected_observations = jax.lax.scan(output_delay_transition, 0.0, [future_cases_t, future_deaths_t, ep.DPCv_pa, ep.DPDv_pa])
     expected_cases = numpyro.deterministic('expected_cases', expected_observations[0])
     expected_deaths = numpyro.deterministic('expected_deaths', expected_observations[1])
 
