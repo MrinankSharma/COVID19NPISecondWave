@@ -69,15 +69,15 @@ def model_func(data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs
     def output_delay_transition(loop_carry, scan_slice):
         # this scan function scans over local areas, using their country specific delay, rather than over days
         # we don't need a loop carry, so we just return 0 and ignore the loop carry!
-        country_infections, country_cases_delay, country_deaths_delay = scan_slice
-        expected_cases = jnp.convolve(country_infections, country_cases_delay, model='full')[
+        future_cases, future_deaths, country_cases_delay, country_deaths_delay = scan_slice
+        expected_cases = jnp.convolve(future_cases, country_cases_delay, model='full')[
                          seeding_padding:data.nDs + seeding_padding]
-        expected_deaths = jnp.convolve(country_infections, country_deaths_delay, model='full')[
+        expected_deaths = jnp.convolve(future_deaths, country_deaths_delay, model='full')[
                           seeding_padding:data.nDs + seeding_padding]
 
         return 0.0, (expected_cases, expected_deaths)
 
-    _, expected_observations = output_delay_transition(output_delay_transition, 0.0, [total_infections, ep.DPCv_pa, ep.DPDv_pa])
+    _, expected_observations = output_delay_transition(output_delay_transition, 0.0, [future_cases_t, future_deaths_t, ep.DPCv_pa, ep.DPDv_pa])
     expected_cases = numpyro.deterministic('expected_cases', expected_observations[0])
     expected_deaths = numpyro.deterministic('expected_deaths', expected_observations[1])
 
