@@ -3,7 +3,7 @@ import matplotlib.dates as mdates
 import numpy as np
 
 
-def area_transmission_curve(area_Rt_samples, Ds, title=None):
+def plot_area_transmission_curve(area_Rt_samples, Ds, title=None):
     li, lq, m, uq, ui = np.percentile(area_Rt_samples, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
@@ -23,7 +23,7 @@ def area_transmission_curve(area_Rt_samples, Ds, title=None):
     plt.ylabel("$Rt$")
 
 
-def area_infections_curve(area_infections, Ds, title=None):
+def plot_area_infections_curve(area_infections, Ds, title=None):
     li, lq, m, uq, ui = np.percentile(area_infections, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
@@ -41,7 +41,7 @@ def area_infections_curve(area_infections, Ds, title=None):
     plt.ylabel("$N_t$")
 
 
-def area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
+def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     nS, nDs = expected_cases.shape
     output_cases = np.random.negative_binomial(
         psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
@@ -65,7 +65,7 @@ def area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     plt.ylabel("$N_t$")
 
 
-def area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
+def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
     nS, nDs = expected_deaths.shape
     output_deaths = np.random.negative_binomial(
         psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
@@ -90,22 +90,29 @@ def area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
 
 
 def add_cms_to_plot(cm_names, active_cms, Ds):
-    cm_diff = np.zeros_like(active_cms[:, :])
-    cm_diff[:, 1:] = np.diff(active_cms[:, :])
+    plt.twinx()
+    cm_diff = np.zeros_like(active_cms)
+    cm_diff[:, 1:] = np.diff(active_cms)
 
     diff_marker = np.sum(np.abs(cm_diff), axis=0) > 0
     diff_dates = np.nonzero(diff_marker)[0]
 
     if len(diff_dates) > 0:
-        for diff_date in diff_dates:
+        for diff_date_i, diff_date in enumerate(diff_dates):
             plt.axvline(Ds[diff_date], color="tab:grey", linewidth=1, alpha=0.5)
             changes = np.nonzero(cm_diff[:, diff_date])[0]
             if len(changes > 0):
                 for change_i, cm_i in enumerate(changes):
-                    plt.text(Ds[diff_date], 20 - change_i, cm_names[cm_i], fontsize=4)
+                    plt.text(
+                        Ds[diff_date],
+                        20 - change_i,
+                        cm_names[cm_i],
+                        fontsize=4,
+                        ha="left" if diff_date_i % 2 == 1 else "right",
+                    )
 
     plt.ylim([0, 20])
-    plt.yticks(None)
+    plt.yticks([])
     plt.xlim([Ds[0], Ds[-1]])
 
 
@@ -115,27 +122,27 @@ def area_summary_plot(posterior_samples, region_index, data, cm_names=None):
     plt.subplot(411)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
     area_active_cms = data.active_cms[region_index, :, :]
-    area_transmission_curve(area_Rt_samples, data.Ds)
+    plot_area_transmission_curve(area_Rt_samples, data.Ds)
     if cm_names is None:
-        add_cms_to_plot(area_active_cms, data.CMs)
+        add_cms_to_plot(data.CMs, area_active_cms, data.Ds)
     else:
-        add_cms_to_plot(area_active_cms, cm_names)
+        add_cms_to_plot(cm_names, area_active_cms, data.Ds)
 
     plt.subplot(412)
     area_infections = posterior_samples["total_infections"][:, region_index, 7:]
-    area_infections_curve(area_infections, data.Ds)
+    plot_area_infections_curve(area_infections, data.Ds)
 
     plt.subplot(413)
-    expected_cases = posterior_samples["expected_cases"][:, region_index, :]
+    expected_cases = posterior_samples["expected_cases_liverpool"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
-    new_cases = data.new_cases[i, :]
-    area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
+    new_cases = data.new_cases[region_index, :]
+    plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
     plt.subplot(414)
-    expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
+    expected_deaths = posterior_samples["expected_deaths_liverpool"][:, region_index, :]
     psi_deaths = posterior_samples["psi_deaths"]
     new_deaths = data.new_deaths[region_index, :]
-    area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
+    plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()

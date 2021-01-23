@@ -68,7 +68,6 @@ class EpidemiologicalParameters:
 
         self.DPCv, self.DPDv, self.GIv = self.generate_all_delay_vectors()
 
-        # note: the
         self.GI_projmat = np.zeros((self.GIv.size - 1, self.GIv.size - 1))
         for i in range(self.GIv.size - 2):
             self.GI_projmat[i + 1, i] = 1

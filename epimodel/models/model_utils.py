@@ -29,6 +29,30 @@ def create_intervention_prior(nCMs, prior_type="normal"):
     return alpha_i
 
 
+def get_discrete_renewal_transition_from_projmat(gi_projmat):
+    """
+    Create discrete renewal transition function, used by `jax.lax.scan`
+
+    :param gi_projmat: gi projection matrix
+
+    :return: Discrete Renewal Transition function, with relevant GI parameters
+    """
+
+    def discrete_renewal_transition(infections, R_with_noise_tuple):
+        # infections is an nR x total_padding size array of infections in the previous
+        # total_padding days.
+        R, inf_noise = R_with_noise_tuple
+        new_infections = infections @ gi_projmat
+        new_infections = jax.ops.index_update(
+            new_infections,
+            jax.ops.index[:, -1],
+            jnp.multiply(new_infections[:, -1], R) + inf_noise,
+        )
+        return new_infections, new_infections[:, -1]
+
+    return discrete_renewal_transition
+
+
 def get_discrete_renewal_transition(ep):
     """
     Create discrete renewal transition function, used by `jax.lax.scan`
@@ -112,3 +136,25 @@ def setup_dr_infection_model(data, ep):
     )
 
     return init_infections, total_infections, infection_noise, seeding_padding
+
+
+def get_output_delay_transition(seeding_padding, data):
+    def output_delay_transition(loop_carry, scan_slice):
+        # this scan function scans over local areas, using their country specific delay, rather than over days
+        # we don't need a loop carry, so we just return 0 and ignore the loop carry!
+        (
+            future_cases,
+            future_deaths,
+            country_cases_delay,
+            country_deaths_delay,
+        ) = scan_slice
+        expected_cases = jnp.convolve(future_cases, country_cases_delay, mode="full")[
+            seeding_padding : data.nDs + seeding_padding
+        ]
+        expected_deaths = jnp.convolve(
+            future_deaths, country_deaths_delay, mode="full"
+        )[seeding_padding : data.nDs + seeding_padding]
+
+        return 0.0, (expected_cases, expected_deaths)
+
+    return output_delay_transition
