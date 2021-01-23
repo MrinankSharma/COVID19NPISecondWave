@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 
-def preprocess_data(data_path, last_day='2020-12-05', npi_start_col=6):
+def preprocess_data(data_path, last_day="2020-12-05", npi_start_col=6):
     """
     Process data, return PreprocessedData() object
 
@@ -16,15 +16,16 @@ def preprocess_data(data_path, last_day='2020-12-05', npi_start_col=6):
     :param npi_start_col: column index (-2) of first npi
     :return: PreprocessedData() object with loaded data.
     """
-    df = pd.read_csv(data_path, parse_dates=["date"], infer_datetime_format=True).set_index(
-        ["area", "date"])
+    df = pd.read_csv(
+        data_path, parse_dates=["date"], infer_datetime_format=True
+    ).set_index(["area", "date"])
 
     if last_day is None:
         Ds = list(df.index.levels[1])
     else:
         Ds = list(df.index.levels[1])
         last_ts = pd.to_datetime(last_day, utc=True)
-        Ds = Ds[:(1 + Ds.index(last_ts))]
+        Ds = Ds[: (1 + Ds.index(last_ts))]
 
     Rs = list(df.index.levels[0])
     CMs = list(df.columns[npi_start_col:])
@@ -39,8 +40,8 @@ def preprocess_data(data_path, last_day='2020-12-05', npi_start_col=6):
 
     for r_i, r in enumerate(Rs):
         r_df = df.loc[r].loc[Ds]
-        new_cases.data[r_i, :] = r_df['new_cases']
-        new_deaths.data[r_i, :] = r_df['new_deaths']
+        new_cases.data[r_i, :] = r_df["new_cases"]
+        new_deaths.data[r_i, :] = r_df["new_deaths"]
 
         for cm_i, cm in enumerate(CMs):
             active_cms[r_i, cm_i, :] = r_df[cm]
@@ -78,6 +79,10 @@ class PreprocessedData(object):
         self.new_cases = new_cases
         self.new_deaths = new_deaths
         self.active_cms = active_cms
+
+    @property
+    def nCMs(self):
+        return len(self.CMs)
 
     @property
     def nCMs(self):
@@ -144,8 +149,8 @@ class PreprocessedData(object):
             if (ds[nz_i] + 3) > d_min and ds[nz_i] + 3 < len(self.Ds):
                 if print_out:
                     print(f"Masking {self.Rs[rs[nz_i]]} from {self.Ds[ds[nz_i] + 3]}")
-                self.new_cases[rs[nz_i], ds[nz_i] + 3 - n_extra:].mask = True
-                self.new_deaths[rs[nz_i], ds[nz_i] + 11 - n_extra:].mask = True
+                self.new_cases[rs[nz_i], ds[nz_i] + 3 - n_extra :].mask = True
+                self.new_deaths[rs[nz_i], ds[nz_i] + 11 - n_extra :].mask = True
 
     def mask_region_ends(self, n_days=20):
         """
@@ -166,7 +171,9 @@ class PreprocessedData(object):
         :param days: Number of days to provide to the model
         """
         i = self.Rs.index(region)
-        c_s = np.nonzero(np.cumsum(self.new_cases.data[i, :] > 0) == days_shown + 1)[0][0]
+        c_s = np.nonzero(np.cumsum(self.new_cases.data[i, :] > 0) == days_shown + 1)[0][
+            0
+        ]
         d_s = np.nonzero(np.cumsum(self.new_deaths.data[i, :] > 0) == days_shown + 1)[0]
         if len(d_s) > 0:
             d_s = d_s[0]

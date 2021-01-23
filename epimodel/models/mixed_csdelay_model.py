@@ -10,6 +10,7 @@ from .model_utils import (
     get_discrete_renewal_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
+    get_output_delay_transition,
 )
 
 
@@ -69,23 +70,7 @@ def mixed_csdelay_model(
     future_cases_t = total_infections
     future_deaths_t = jnp.multiply(total_infections, cfr)
 
-    def output_delay_transition(loop_carry, scan_slice):
-        # this scan function scans over local areas, using their country specific delay, rather than over days
-        # we don't need a loop carry, so we just return 0 and ignore the loop carry!
-        (
-            future_cases,
-            future_deaths,
-            country_cases_delay,
-            country_deaths_delay,
-        ) = scan_slice
-        expected_cases = jnp.convolve(future_cases, country_cases_delay, mode="full")[
-            seeding_padding : data.nDs + seeding_padding
-        ]
-        expected_deaths = jnp.convolve(
-            future_deaths, country_deaths_delay, mode="full"
-        )[seeding_padding : data.nDs + seeding_padding]
-
-        return 0.0, (expected_cases, expected_deaths)
+    output_delay_transition = get_output_delay_transition(seeding_padding, data)
 
     _, expected_observations = jax.lax.scan(
         output_delay_transition,
