@@ -8,20 +8,22 @@ import numpyro
 import numpyro.distributions as dist
 
 
-def create_intervention_prior(nCMs, prior_type="normal"):
-    """
-    Create alpha_i variables, which are the intervention effections.
+def create_intervention_prior(nCMs, intervention_prior=None):
+    if intervention_prior is None:
+        intervention_prior = {"type": "normal", "scale": 0.1}
 
-    :param nCMs: Number of CMs
-    :param prior_type: either 'trunc_normal' or 'normal'
-    :return: alpha_i numpyro RV
-    """
-    if prior_type == "trunc_normal":
+    if intervention_prior["type"] == "trunc_normal":
         alpha_i = numpyro.sample(
-            "alpha_i", dist.TruncatedNormal(low=-0.1, loc=jnp.zeros(nCMs), scale=0.2)
+            "alpha_i",
+            dist.TruncatedNormal(
+                low=-0.1, loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]
+            ),
         )
-    elif prior_type == "normal":
-        alpha_i = numpyro.sample("alpha_i", dist.Normal(loc=jnp.zeros(nCMs), scale=0.1))
+    elif intervention_prior["type"] == "normal":
+        alpha_i = numpyro.sample(
+            "alpha_i",
+            dist.Normal(loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]),
+        )
     else:
         raise ValueError(
             "Intervention effect prior must take a value in [trunc_normal]"
@@ -158,3 +160,53 @@ def get_output_delay_transition(seeding_padding, data):
         return 0.0, (expected_cases, expected_deaths)
 
     return output_delay_transition
+
+
+def create_basic_R_prior(nRs, basic_r_prior=None):
+    if basic_r_prior is None:
+        basic_r_prior = {"mean": 1.1, "type": "trunc_normal", "variability": 0.5}
+
+    if basic_r_prior["type"] == "trunc_normal":
+        basic_R_variability = numpyro.sample(
+            "basic_R_variability", dist.HalfNormal(0.5)
+        )
+        basic_R = numpyro.sample(
+            "basic_R",
+            dist.TruncatedNormal(
+                low=0.1, loc=1.1 * jnp.ones(nRs), scale=basic_R_variability
+            ),
+        )
+    else:
+        raise ValueError("Basic R prior type must be in [trunc_normal]")
+
+    return basic_R
+
+
+def create_noisescale_prior(varname, noisescale_prior):
+    if noisescale_prior is None:
+        if "r_walk" in varname:
+            noisescale_prior = {"type": "half_normal", "scale": 0.05}
+        else:
+            noisescale_prior = {"type": "half_normal", "scale": 0.05}
+
+    if noisescale_prior["type"] == "half_normal":
+        var = numpyro.sample(varname, dist.HalfNormal(noisescale_prior["scale"]))
+    else:
+        raise ValueError("Noisescale prior type must be in [half_normal]")
+
+    return var
+
+
+def create_partial_pooling_prior(nCMs, partial_pooling_prior):
+    if partial_pooling_prior is None:
+        partial_pooling_prior = {"type": "half_normal", "scale": 0.05}
+
+    if partial_pooling_prior["type"] == "half_normal":
+        var = numpyro.sample(
+            "sigma_i",
+            dist.HalfNormal(partial_pooling_prior["scale"] * jnp.ones((1, nCMs))),
+        )
+    else:
+        raise ValueError("Noisescale prior type must be in [half_normal]")
+
+    return var

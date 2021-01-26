@@ -8,7 +8,6 @@ Mostly copied from https://github.com/epidemics/COVIDNPIs/blob/manuscript/epimod
 
 import numpy as np
 import pprint
-import tqdm as tqdm
 
 
 class EpidemiologicalParameters:
