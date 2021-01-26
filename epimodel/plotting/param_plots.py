@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 import arviz as az
+import numpy as np
 
 
 def plot_gi(posterior_samples, mean_varname="gi_mean", sd_varname="gi_sd", newfig=True):
@@ -27,10 +27,11 @@ def plot_cases_death_delays(
     if newfig:
         plt.figure(figsize=(6, 6), dpi=300)
 
-    nCs = len(data.countries)
+    Cs = list(data.unique_Cs)
+    nCs = len(Cs)
     cols = sns.color_palette("colorblind")
     plt.subplot(221)
-    for c_i, c in enumerate(data.countries):
+    for c_i, c in enumerate(Cs):
         sns.kdeplot(
             posterior_samples[f"{cd_prefix}mean_{c}"],
             ax=plt.gca(),
@@ -46,7 +47,7 @@ def plot_cases_death_delays(
     plt.legend(loc="upper right", fancybox=True, shadow=True, fontsize=8)
 
     plt.subplot(222)
-    for c_i, c in enumerate(data.countries):
+    for c_i, c in enumerate(Cs):
         az.plot_kde(
             posterior_samples[f"{cd_prefix}disp_{c}"],
             ax=plt.gca(),
@@ -60,7 +61,7 @@ def plot_cases_death_delays(
     plt.yticks(fontsize=8)
 
     plt.subplot(223)
-    for c_i, c in enumerate(data.countries):
+    for c_i, c in enumerate(Cs):
         az.plot_kde(
             posterior_samples[f"{dd_prefix}mean_{c}"],
             ax=plt.gca(),
@@ -74,7 +75,7 @@ def plot_cases_death_delays(
     plt.yticks(fontsize=8)
 
     plt.subplot(224)
-    for c_i, c in enumerate(data.countries):
+    for c_i, c in enumerate(Cs):
         az.plot_kde(
             posterior_samples[f"{cd_prefix}disp_{c}"],
             ax=plt.gca(),
@@ -175,3 +176,26 @@ def plot_rw_noise_scales(
     plt.gca().set_ylim(bottom=0)
     plt.xticks(fontsize=8)
     plt.yticks(fontsize=8)
+
+
+def plot_kdes(
+    posterior_samples,
+    varnames,
+    newfig=True,
+):
+    if newfig:
+        plt.figure(figsize=(6, 6), dpi=300)
+
+    nVs = len(varnames)
+    width = int(np.sqrt(nVs)) + 1
+
+    for i, v in enumerate(varnames):
+        plt.subplot(width, width, i + 1)
+        sns.kdeplot(posterior_samples[v], ax=plt.gca())
+        plt.ylabel("density")
+        plt.xlabel(v)
+        plt.gca().set_ylim(bottom=0)
+        plt.xticks(fontsize=8)
+        plt.yticks(fontsize=8)
+
+    plt.tight_layout()
