@@ -55,7 +55,7 @@ def get_discrete_renewal_transition_from_projmat(gi_projmat):
     return discrete_renewal_transition
 
 
-def get_discrete_renewal_transition(ep):
+def get_discrete_renewal_transition(ep, type="optim"):
     """
     Create discrete renewal transition function, used by `jax.lax.scan`
 
@@ -64,17 +64,38 @@ def get_discrete_renewal_transition(ep):
     :return: Discrete Renewal Transition function, with relevant GI parameters
     """
 
-    def discrete_renewal_transition(infections, R_with_noise_tuple):
-        # infections is an nR x total_padding size array of infections in the previous
-        # total_padding days.
-        R, inf_noise = R_with_noise_tuple
-        new_infections = infections @ ep.GI_projmat
-        new_infections = jax.ops.index_update(
-            new_infections,
-            jax.ops.index[:, -1],
-            jnp.multiply(new_infections[:, -1], R) + inf_noise,
-        )
-        return new_infections, new_infections[:, -1]
+    if type == "optim":
+
+        def discrete_renewal_transition(infections, R_with_noise_tuple):
+            # infections is an nR x total_padding size array of infections in the previous
+            # total_padding days.
+            R, inf_noise = R_with_noise_tuple
+            new_infections_t = jnp.multiply(R, infections @ ep.GI_flat_rev) + inf_noise
+            new_infections = infections
+            new_infections = jax.ops.index_update(
+                new_infections, jax.ops.index[:, :-1], infections[:, 1:]
+            )
+            new_infections = jax.ops.index_update(
+                new_infections, jax.ops.index[:, -1], new_infections_t
+            )
+            return new_infections, new_infections_t
+
+    elif type == "matmul":
+
+        def discrete_renewal_transition(infections, R_with_noise_tuple):
+            # infections is an nR x total_padding size array of infections in the previous
+            # total_padding days.
+            R, inf_noise = R_with_noise_tuple
+            new_infections = infections @ ep.GI_projmat
+            new_infections = jax.ops.index_update(
+                new_infections,
+                jax.ops.index[:, -1],
+                jnp.multiply(new_infections[:, -1], R) + inf_noise,
+            )
+            return new_infections, new_infections[:, -1]
+
+    else:
+        raise ValueError("Discrete renewal transition type must be in [matmul, optim]")
 
     return discrete_renewal_transition
 
