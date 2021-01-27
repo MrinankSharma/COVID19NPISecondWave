@@ -25,6 +25,7 @@ def candidate_model(
     ifr_noisescale_prior=None,
     iar_noisescale_prior=None,
     basic_r_prior=None,
+    discrete_renewal_transition_type="optim",
     noise_scale_period=7,
     **kwargs
 ):
@@ -74,7 +75,9 @@ def candidate_model(
         seeding_padding,
     ) = setup_dr_infection_model(data, ep)
 
-    discrete_renewal_transition = get_discrete_renewal_transition(ep)
+    discrete_renewal_transition = get_discrete_renewal_transition(
+        ep, discrete_renewal_transition_type
+    )
 
     # we need to transpose R because jax.lax.scan scans over the first dimension. We want to scan over time
     # we also will transpose infections at the end
