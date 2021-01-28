@@ -1,0 +1,7 @@
+# default model config does not override anything
+default: {}
+
+alt_prior:
+  intervention_prior:
+    type: normal
+    scale: 0.15

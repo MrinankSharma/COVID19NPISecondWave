@@ -94,8 +94,23 @@ def get_discrete_renewal_transition(ep, type="optim"):
             )
             return new_infections, new_infections[:, -1]
 
+    elif type == "noiseless":
+
+        def discrete_renewal_transition(infections, R):
+            new_infections_t = jnp.multiply(R, infections @ ep.GI_flat_rev)
+            new_infections = infections
+            new_infections = jax.ops.index_update(
+                new_infections, jax.ops.index[:, :-1], infections[:, 1:]
+            )
+            new_infections = jax.ops.index_update(
+                new_infections, jax.ops.index[:, -1], new_infections_t
+            )
+            return new_infections, new_infections_t
+
     else:
-        raise ValueError("Discrete renewal transition type must be in [matmul, optim]")
+        raise ValueError(
+            "Discrete renewal transition type must be in [matmul, optim, noiseless]"
+        )
 
     return discrete_renewal_transition
 
