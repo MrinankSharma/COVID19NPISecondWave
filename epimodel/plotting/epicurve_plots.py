@@ -135,8 +135,8 @@ def plot_area_ifr_curve(ifr, Ds, title=None):
     plt.ylabel("IFR$_t$")
 
 
-def plot_area_iar_curve(ifr, Ds, title=None):
-    li, lq, m, uq, ui = np.percentile(ifr, [2.5, 25, 50, 75, 97.5], axis=0)
+def plot_area_iar_curve(iar, Ds, title=None):
+    li, lq, m, uq, ui = np.percentile(iar, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="tab:blue")
     plt.fill_between(Ds, li, ui, color="tab:blue", alpha=0.1, linewidth=0)
@@ -189,7 +189,7 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     plt.subplot(616)
     if "ifr_r" in posterior_samples.keys():
         area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
-        plot_area_iar_curve(area_ifr, data.Ds, None)
+        plot_area_ifr_curve(area_ifr, data.Ds, None)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()
