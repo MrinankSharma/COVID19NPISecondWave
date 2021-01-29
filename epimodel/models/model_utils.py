@@ -207,6 +207,6 @@ def create_partial_pooling_prior(nCMs, partial_pooling_prior):
             dist.HalfNormal(partial_pooling_prior["scale"] * jnp.ones((1, nCMs))),
         )
     else:
-        raise ValueError("Noisescale prior type must be in [half_normal]")
+        raise ValueError("Partial pooling prior type must be in [half_normal]")
 
     return var
