@@ -109,6 +109,7 @@ def add_cms_to_plot(cm_names, active_cms, Ds):
                         cm_names[cm_i],
                         fontsize=4,
                         ha="left" if diff_date_i % 2 == 1 else "right",
+                        rotation=45 if diff_date_i % 2 == 1 else -45,
                     )
 
     plt.ylim([0, 20])
@@ -116,10 +117,46 @@ def add_cms_to_plot(cm_names, active_cms, Ds):
     plt.xlim([Ds[0], Ds[-1]])
 
 
-def area_summary_plot(posterior_samples, region_index, data, cm_names=None):
-    plt.figure(figsize=(6, 8), dpi=300)
+def plot_area_ifr_curve(ifr, Ds, title=None):
+    li, lq, m, uq, ui = np.percentile(ifr, [2.5, 25, 50, 75, 97.5], axis=0)
 
-    plt.subplot(411)
+    plt.plot(Ds, m, color="tab:red")
+    plt.fill_between(Ds, li, ui, color="tab:red", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="tab:red", alpha=0.3, linewidth=0)
+
+    if title is not None:
+        plt.title(title, fontsize=10)
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    plt.xticks(fontsize=8)
+    plt.xlim([Ds[0], Ds[-1]])
+
+    plt.yticks(fontsize=8)
+    plt.ylabel("IFR$_t$")
+
+
+def plot_area_iar_curve(iar, Ds, title=None):
+    li, lq, m, uq, ui = np.percentile(iar, [2.5, 25, 50, 75, 97.5], axis=0)
+
+    plt.plot(Ds, m, color="tab:blue")
+    plt.fill_between(Ds, li, ui, color="tab:blue", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="tab:blue", alpha=0.3, linewidth=0)
+
+    if title is not None:
+        plt.title(title, fontsize=10)
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    plt.xticks(fontsize=8)
+    plt.xlim([Ds[0], Ds[-1]])
+
+    plt.yticks(fontsize=8)
+    plt.ylabel("IAR$_t$")
+
+
+def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
+    plt.figure(figsize=(8, 8), dpi=300)
+
+    plt.subplot(611)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
     area_active_cms = data.active_cms[region_index, :, :]
     plot_area_transmission_curve(area_Rt_samples, data.Ds)
@@ -128,21 +165,31 @@ def area_summary_plot(posterior_samples, region_index, data, cm_names=None):
     else:
         add_cms_to_plot(cm_names, area_active_cms, data.Ds)
 
-    plt.subplot(412)
+    plt.subplot(612)
     area_infections = posterior_samples["total_infections"][:, region_index, 7:]
     plot_area_infections_curve(area_infections, data.Ds)
 
-    plt.subplot(413)
-    expected_cases = posterior_samples["expected_cases_liverpool"][:, region_index, :]
+    plt.subplot(613)
+    expected_cases = posterior_samples["expected_cases"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
     new_cases = data.new_cases[region_index, :]
     plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
-    plt.subplot(414)
-    expected_deaths = posterior_samples["expected_deaths_liverpool"][:, region_index, :]
+    plt.subplot(614)
+    expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
     psi_deaths = posterior_samples["psi_deaths"]
     new_deaths = data.new_deaths[region_index, :]
     plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
+
+    plt.subplot(615)
+    if "iar_r" in posterior_samples.keys():
+        area_iar = posterior_samples["iar_t"][:, region_index, 7:]
+        plot_area_iar_curve(area_iar, data.Ds, None)
+
+    plt.subplot(616)
+    if "ifr_r" in posterior_samples.keys():
+        area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
+        plot_area_ifr_curve(area_ifr, data.Ds, None)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()
