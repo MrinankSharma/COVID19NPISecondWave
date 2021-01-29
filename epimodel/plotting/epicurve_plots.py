@@ -189,7 +189,7 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     plt.subplot(616)
     if "ifr_r" in posterior_samples.keys():
         area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
-        plot_area_iar_curve(area_ifr, data.Ds, None)
+        plot_area_ifr_curve(area_ifr, data.Ds, None)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()
