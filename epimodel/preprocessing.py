@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def preprocess_data(
-    data_path, last_day="2021-01-08", npi_start_col=3, skipcases=10, skipdeaths=30
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30
 ):
     """
     Process data, return PreprocessedData() object
@@ -67,10 +67,8 @@ def preprocess_data(
     new_cases[new_cases < 0] = np.ma.masked
     new_deaths[new_deaths < 0] = np.ma.masked
     # do this to make sure.
-    new_cases.mask[new_cases < 0] = True
-    new_cases.data[new_cases < 0] = 0
-    new_deaths.mask[new_deaths < 0] = True
-    new_deaths.data[new_deaths < 0] = 0
+    new_cases.data[new_cases.data < 0] = 0
+    new_deaths.data[new_deaths.data < 0] = 0
 
     new_cases[:, :skipcases] = np.ma.masked
     new_deaths[:, :skipdeaths] = np.ma.masked

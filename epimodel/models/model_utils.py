@@ -182,11 +182,11 @@ def create_basic_R_prior(nRs, basic_r_prior=None):
     return basic_R
 
 
-def create_noisescale_prior(varname, noisescale_prior):
+def create_noisescale_prior(varname, noisescale_prior, type="r_walk"):
     if noisescale_prior is None:
-        if "r_walk" in varname:
+        if type == "r_walk":
             noisescale_prior = {"type": "half_normal", "scale": 0.05}
-        else:
+        elif type == "ifr/iar":
             noisescale_prior = {"type": "half_normal", "scale": 0.05}
 
     if noisescale_prior["type"] == "half_normal":
