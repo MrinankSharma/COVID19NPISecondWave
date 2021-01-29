@@ -4,8 +4,15 @@ import numpy as np
 
 
 def plot_intervention_effectiveness(
-    posterior_samples, cm_names=None, intervention_varname="alpha_i", xlim="auto"
+    posterior_samples,
+    cm_names=None,
+    intervention_varname="alpha_i",
+    xlim="auto",
+    newfig=True,
 ):
+    if newfig:
+        plt.figure(figsize=(4, 3), dpi=300)
+
     if isinstance(posterior_samples, dict):
         per_red = 100 * (1 - np.exp(-posterior_samples[intervention_varname]))
     else:
@@ -55,8 +62,14 @@ def plot_intervention_effectiveness(
 
 
 def plot_intervention_correlation(
-    posterior_samples, cm_names=None, intervention_varname="alpha_i"
+    posterior_samples,
+    cm_names=None,
+    intervention_varname="alpha_i",
+    newfig=True,
 ):
+    if newfig:
+        plt.figure(figsize=(4, 3), dpi=300)
+
     if isinstance(posterior_samples, dict):
         cormat = np.corrcoef(posterior_samples[intervention_varname].T)
     else:
@@ -132,3 +145,16 @@ def plot_intervention_sd(
         plt.xlim(xlim)
 
     plt.title("NPI Effectiveness Variability")
+
+
+def combine_npi_samples(grouped_npis, alpha_i_samples):
+    nS, nCMs_orig = alpha_i_samples.shape
+    CMs_new = list(grouped_npis.keys())
+    nCMs_new = len(CMs_new)
+
+    new_samples = np.zeros((nS, nCMs_new))
+    for cm_i_new, (gnpi, sub_npilist) in enumerate(grouped_npis.items()):
+        for cm in sub_npilist:
+            new_samples[:, cm_i_new] += alpha_i_samples[:, cm]
+
+    return new_samples, CMs_new
