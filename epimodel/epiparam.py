@@ -8,7 +8,6 @@ Mostly copied from https://github.com/epidemics/COVIDNPIs/blob/manuscript/epimod
 
 import numpy as np
 import pprint
-import tqdm as tqdm
 
 
 class EpidemiologicalParameters:
@@ -72,6 +71,8 @@ class EpidemiologicalParameters:
         for i in range(self.GIv.size - 2):
             self.GI_projmat[i + 1, i] = 1
         self.GI_projmat[:, -1] = self.GIv[:, ::-1][:, :-1]
+
+        self.GI_flat_rev = self.GIv[:, 1:][:, ::-1].flatten()
 
         # TODO: at the moment, this just assumes the delay is identical for all of the regions
         # TODO: Ideally, we have a nice way of setting per country delays or similar

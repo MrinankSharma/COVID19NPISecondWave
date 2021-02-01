@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 
 
-def preprocess_data(data_path, last_day="2021-01-08", npi_start_col=3):
+def preprocess_data(
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30
+):
     """
     Process data, return PreprocessedData() object
 
@@ -49,8 +51,8 @@ def preprocess_data(data_path, last_day="2021-01-08", npi_start_col=3):
         C_indices.append(a_indices)
 
     active_cms = np.zeros((nRs, nCMs, nDs))
-    new_cases = np.ma.zeros((nRs, nDs))
-    new_deaths = np.ma.zeros((nRs, nDs))
+    new_cases = np.ma.zeros((nRs, nDs), dtype="int")
+    new_deaths = np.ma.zeros((nRs, nDs), dtype="int")
 
     for r_i, r in enumerate(Rs):
         r_df = df.loc[r].loc[Ds]
@@ -64,6 +66,12 @@ def preprocess_data(data_path, last_day="2021-01-08", npi_start_col=3):
     # is clearly wrong
     new_cases[new_cases < 0] = np.ma.masked
     new_deaths[new_deaths < 0] = np.ma.masked
+    # do this to make sure.
+    new_cases.data[new_cases.data < 0] = 0
+    new_deaths.data[new_deaths.data < 0] = 0
+
+    new_cases[:, :skipcases] = np.ma.masked
+    new_deaths[:, :skipdeaths] = np.ma.masked
 
     return PreprocessedData(
         Rs, Ds, CMs, new_cases, new_deaths, active_cms, Cs, unique_Cs, C_indices
