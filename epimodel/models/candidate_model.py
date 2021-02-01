@@ -68,21 +68,49 @@ def candidate_model(
     log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
 
-    (
-        init_infections,
-        total_infections,
-        infection_noise,
-        seeding_padding,
-    ) = setup_dr_infection_model(data, ep)
+    seeding_padding = 7
+    total_padding = ep.GIv.size - 1
 
-    discrete_renewal_transition = get_discrete_renewal_transition(
-        ep, discrete_renewal_transition_type
+    seeding = numpyro.sample("seeding", dist.LogNormal(jnp.zeros((data.nRs, 1)), 5.0))
+    init_infections = jnp.zeros((data.nRs, total_padding))
+    init_infections = jax.ops.index_add(
+        init_infections,
+        jax.ops.index[:, -seeding_padding:],
+        jnp.repeat(seeding, seeding_padding, axis=-1),
     )
+
+    total_infections = jnp.zeros((data.nRs, seeding_padding + data.nDs))
+
+    infection_noise_scale = numpyro.sample("infection_noise_scale", dist.HalfNormal(3))
+    # infection noise is now a normal
+    infection_noise = numpyro.sample(
+        "infection_noise",
+        dist.Normal(loc=0, scale=jnp.ones((data.nRs, data.nDs))),
+    )
+
+    def discrete_renewal_transition(infections, R_with_noise_tuple):
+        R, inf_noise = R_with_noise_tuple
+        mean_new_infections_t = jnp.multiply(R, infections @ ep.GI_flat_rev)
+        # enforce that infections remain positive with a softplus
+        # and enforce that there is always some noise, even at small noise-scale levels
+        new_infections_t = jax.nn.softplus(
+            mean_new_infections_t + ((1 + jnp.sqrt(mean_new_infections_t)) * inf_noise)
+        )
+        new_infections = infections
+        new_infections = jax.ops.index_update(
+            new_infections, jax.ops.index[:, :-1], infections[:, 1:]
+        )
+        new_infections = jax.ops.index_update(
+            new_infections, jax.ops.index[:, -1], new_infections_t
+        )
+        return new_infections, new_infections_t
 
     # we need to transpose R because jax.lax.scan scans over the first dimension. We want to scan over time
     # we also will transpose infections at the end
     _, infections = jax.lax.scan(
-        discrete_renewal_transition, init_infections, [Rt.T, infection_noise.T]
+        discrete_renewal_transition,
+        init_infections,
+        [Rt.T, infection_noise_scale * infection_noise.T],
     )
 
     total_infections = jax.ops.index_update(
