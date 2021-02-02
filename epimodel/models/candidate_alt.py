@@ -88,30 +88,29 @@ def candidate_model(
         dist.Normal(loc=0, scale=jnp.ones((data.nRs, data.nDs))),
     )
 
-    def discrete_renewal_transition(infections, R):
+    def discrete_renewal_transition(infections, R_with_noise_tuple):
+        R, inf_noise = R_with_noise_tuple
         mean_new_infections_t = jnp.multiply(R, infections @ ep.GI_flat_rev)
         # enforce that infections remain positive with a softplus
         # and enforce that there is always some noise, even at small noise-scale levels
+        new_infections_t = jax.nn.softplus(
+            mean_new_infections_t + ((1 + jnp.sqrt(mean_new_infections_t)) * inf_noise)
+        )
         new_infections = infections
         new_infections = jax.ops.index_update(
             new_infections, jax.ops.index[:, :-1], infections[:, 1:]
         )
         new_infections = jax.ops.index_update(
-            new_infections, jax.ops.index[:, -1], mean_new_infections_t
+            new_infections, jax.ops.index[:, -1], new_infections_t
         )
-        return new_infections, mean_new_infections_t
+        return new_infections, new_infections_t
 
     # we need to transpose R because jax.lax.scan scans over the first dimension. We want to scan over time
     # we also will transpose infections at the end
     _, infections = jax.lax.scan(
         discrete_renewal_transition,
         init_infections,
-        Rt.T,
-    )
-
-    infections = jax.nn.softplus(
-        infections
-        + ((infection_noise_scale * (1 + jnp.sqrt(infections))) * infection_noise.T)
+        [Rt.T, infection_noise_scale * infection_noise.T],
     )
 
     total_infections = jax.ops.index_update(

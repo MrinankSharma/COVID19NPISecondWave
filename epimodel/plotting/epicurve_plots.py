@@ -154,7 +154,7 @@ def plot_area_iar_curve(iar, Ds, title=None):
 
 
 def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
-    plt.figure(figsize=(8, 8), dpi=300)
+    plt.figure(figsize=(6, 8), dpi=300)
 
     plt.subplot(611)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
@@ -182,12 +182,12 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
 
     plt.subplot(615)
-    if "iar_r" in posterior_samples.keys():
+    if "iar_t" in posterior_samples.keys():
         area_iar = posterior_samples["iar_t"][:, region_index, 7:]
         plot_area_iar_curve(area_iar, data.Ds, None)
 
     plt.subplot(616)
-    if "ifr_r" in posterior_samples.keys():
+    if "ifr_t" in posterior_samples.keys():
         area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
         plot_area_ifr_curve(area_ifr, data.Ds, None)
 
