@@ -15,13 +15,13 @@ def get_model_func_from_str(model_type_str):
 
 
 def get_target_accept_from_model_str(model_type_str):
-    if model_type_str == "default":
-        return 0.8
+    # default
+    return 0.8
 
 
 def get_tree_depth_from_model_str(model_type_str):
-    if model_type_str == "default":
-        return 12
+    # default
+    return 0.8
 
 
 def add_argparse_arguments(argparse):
@@ -81,7 +81,7 @@ def generate_base_output_dir(model_type, model_config, exp_tag):
 
 
 def get_summary_save_keys():
-    return ["alpha_i", "sigma_i"]
+    return ["alpha_i", "sigma_i", "alpha_ic"]
 
 
 def get_data_path():
