@@ -25,6 +25,11 @@ def create_intervention_prior(nCMs, intervention_prior=None):
                 low=-0.1, loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]
             ),
         )
+    if intervention_prior["type"] == "half_normal":
+        alpha_i = numpyro.sample(
+            "alpha_i",
+            dist.HalfNormal(scale=jnp.ones(nCMs) * intervention_prior["scale"]),
+        )
     elif intervention_prior["type"] == "normal":
         alpha_i = numpyro.sample(
             "alpha_i",
@@ -40,8 +45,9 @@ def create_intervention_prior(nCMs, intervention_prior=None):
         )
     else:
         raise ValueError(
-            "Intervention effect prior must take a value in [trunc_normal]"
+            "Intervention effect prior must take a value in [trunc_normal, normal, asymmetric_laplace]"
         )
+
     return alpha_i
 
 
