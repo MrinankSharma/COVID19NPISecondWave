@@ -7,10 +7,16 @@ import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
 
+from epimodel.distributions import AsymmetricLaplace
+
 
 def create_intervention_prior(nCMs, intervention_prior=None):
     if intervention_prior is None:
-        intervention_prior = {"type": "normal", "scale": 0.1}
+        intervention_prior = {
+            "type": "asymmetric_laplace",
+            "scale": 55,
+            "asymmetry": 0.5,
+        }
 
     if intervention_prior["type"] == "trunc_normal":
         alpha_i = numpyro.sample(
@@ -23,6 +29,14 @@ def create_intervention_prior(nCMs, intervention_prior=None):
         alpha_i = numpyro.sample(
             "alpha_i",
             dist.Normal(loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]),
+        )
+    elif intervention_prior["type"] == "asymmetric_laplace":
+        alpha_i = numpyro.sample(
+            "alpha_i",
+            AsymmetricLaplace(
+                asymmetry=intervention_prior["asymmetry"],
+                scale=jnp.ones(nCMs) * intervention_prior["scale"],
+            ),
         )
     else:
         raise ValueError(

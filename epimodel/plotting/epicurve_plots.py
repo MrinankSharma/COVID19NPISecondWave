@@ -43,11 +43,11 @@ def plot_area_infections_curve(area_infections, Ds, title=None):
 
 def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     nS, nDs = expected_cases.shape
-    output_cases = np.random.negative_binomial(
-        psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
-        psi_cases.reshape((nS, 1)) / (expected_cases + psi_cases.reshape((nS, 1))),
-    )
-    li, lq, m, uq, ui = np.percentile(output_cases, [2.5, 25, 50, 75, 97.5], axis=0)
+    # output_cases = np.random.negative_binomial(
+    #     psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
+    #     psi_cases.reshape((nS, 1)) / (expected_cases + psi_cases.reshape((nS, 1))),
+    # )
+    li, lq, m, uq, ui = np.percentile(expected_cases, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
     plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
@@ -67,11 +67,11 @@ def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
 
 def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
     nS, nDs = expected_deaths.shape
-    output_deaths = np.random.negative_binomial(
-        psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
-        psi_deaths.reshape((nS, 1)) / (expected_deaths + psi_deaths.reshape((nS, 1))),
-    )
-    li, lq, m, uq, ui = np.percentile(output_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
+    # output_deaths = np.random.negative_binomial(
+    #     psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
+    #     psi_deaths.reshape((nS, 1)) / (expected_deaths + psi_deaths.reshape((nS, 1))),
+    # )
+    li, lq, m, uq, ui = np.percentile(expected_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
     plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
@@ -106,7 +106,9 @@ def add_cms_to_plot(cm_names, active_cms, Ds):
                     plt.text(
                         Ds[diff_date],
                         20 - change_i,
-                        cm_names[cm_i],
+                        cm_names[cm_i]
+                        if cm_diff[cm_i, diff_date] == 1
+                        else f"{cm_names[cm_i]} lifted",
                         fontsize=4,
                         ha="left" if diff_date_i % 2 == 1 else "right",
                         rotation=45 if diff_date_i % 2 == 1 else -45,
@@ -156,7 +158,7 @@ def plot_area_iar_curve(iar, Ds, title=None):
 def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     plt.figure(figsize=(6, 8), dpi=300)
 
-    plt.subplot(611)
+    plt.subplot(411)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
     area_active_cms = data.active_cms[region_index, :, :]
     plot_area_transmission_curve(area_Rt_samples, data.Ds)
@@ -165,31 +167,21 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     else:
         add_cms_to_plot(cm_names, area_active_cms, data.Ds)
 
-    plt.subplot(612)
+    plt.subplot(412)
     area_infections = posterior_samples["total_infections"][:, region_index, 7:]
     plot_area_infections_curve(area_infections, data.Ds)
 
-    plt.subplot(613)
+    plt.subplot(413)
     expected_cases = posterior_samples["expected_cases"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
     new_cases = data.new_cases[region_index, :]
     plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
-    plt.subplot(614)
+    plt.subplot(414)
     expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
     psi_deaths = posterior_samples["psi_deaths"]
     new_deaths = data.new_deaths[region_index, :]
     plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
-
-    plt.subplot(615)
-    if "iar_t" in posterior_samples.keys():
-        area_iar = posterior_samples["iar_t"][:, region_index, 7:]
-        plot_area_iar_curve(area_iar, data.Ds, None)
-
-    plt.subplot(616)
-    if "ifr_t" in posterior_samples.keys():
-        area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
-        plot_area_ifr_curve(area_ifr, data.Ds, None)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()
