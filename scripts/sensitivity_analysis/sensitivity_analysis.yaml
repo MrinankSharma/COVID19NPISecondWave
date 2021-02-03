@@ -1,65 +1,7 @@
-region_holdout:
-  experiment_file: region_holdout.py
-  experiment_tag: region_holdout
+holdout:
+  experiment_file: holdout.py
+  experiment_tag: holdout
   n_chains: 4
   n_samples: 2000
   args:
-    rg:
-      - AL
-      - AD
-      - AT
-      - BE
-      - BA
-      - BG
-      - HR
-      - CZ
-      - DK
-      - EE
-      - FI
-      - FR
-      - GE
-      - DE
-      - GR
-      - HU
-      - IS
-      - IE
-      - IL
-      - IT
-      - LV
-      - LT
-      - MY
-      - MT
-      - MX
-      - MA
-      - NL
-      - NZ
-      - 'NO' # otherwise this evaluates to false!
-      - PL
-      - PT
-      - RO
-      - RS
-      - SG
-      - SK
-      - SI
-      - ZA
-      - ES
-      - SE
-      - CH
-      - GB
-
-npi_leaveout:
-  experiment_file: npi_leaveout.py
-  experiment_tag: npi_leaveout
-  n_chains: 4
-  n_samples: 2000
-  args:
-    npis:
-      - [0]
-      - [1]
-      - [2]
-      - [3]
-      - [4]
-      - [5]
-      - [6]
-      - [7]
-      - [8]
+    rg: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
