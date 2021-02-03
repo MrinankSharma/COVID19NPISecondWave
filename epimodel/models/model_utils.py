@@ -206,9 +206,9 @@ def create_basic_R_prior(nRs, basic_r_prior=None):
 def create_noisescale_prior(varname, noisescale_prior, type="r_walk"):
     if noisescale_prior is None:
         if type == "r_walk":
-            noisescale_prior = {"type": "half_normal", "scale": 0.05}
+            noisescale_prior = {"type": "half_normal", "scale": 0.1}
         elif type == "ifr/iar":
-            noisescale_prior = {"type": "half_normal", "scale": 0.05}
+            noisescale_prior = {"type": "half_normal", "scale": 0.01}
 
     if noisescale_prior["type"] == "half_normal":
         var = numpyro.sample(varname, dist.HalfNormal(noisescale_prior["scale"]))
@@ -231,3 +231,37 @@ def create_partial_pooling_prior(nCMs, partial_pooling_prior):
         raise ValueError("Partial pooling prior type must be in [half_normal]")
 
     return var
+
+
+def observe_subset_cases_deaths(
+    subset_name, new_cases, new_deaths, expected_cases, expected_deaths
+):
+    """
+    Observation model
+
+    :param data: PreprocessedData Object
+    :param expected_cases: Expected Cases - nRs x nDs array
+    :param expected_deaths: Expected Deaths - nRs x nDs array
+    """
+    psi_cases = numpyro.sample(f"psi_cases_{subset_name}", dist.HalfNormal(5))
+    psi_deaths = numpyro.sample(f"psi_deaths_{subset_name}", dist.HalfNormal(5))
+
+    with numpyro.handlers.mask(mask=jnp.logical_not(new_cases.mask)):
+        observed_cases = numpyro.sample(
+            f"observed_cases_{subset_name}",
+            dist.GammaPoisson(
+                concentration=psi_cases,
+                rate=psi_cases / expected_cases,
+            ),
+            obs=new_cases.data,
+        )
+
+    with numpyro.handlers.mask(mask=jnp.logical_not(new_deaths.mask)):
+        observed_deaths = numpyro.sample(
+            f"observed_deaths_{subset_name}",
+            dist.GammaPoisson(
+                concentration=psi_deaths,
+                rate=psi_deaths / expected_deaths,
+            ),
+            obs=new_deaths.data,
+        )
