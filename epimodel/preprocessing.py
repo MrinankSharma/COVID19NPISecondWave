@@ -221,3 +221,14 @@ class PreprocessedData(object):
         self.Deaths.mask = False
         self.NewDeaths.mask = False
         self.NewCases.mask = False
+
+    def mask_region_by_index(self, region_index, nz_case_days_shown=60):
+        mask_start = np.nonzero(
+            np.cumsum(self.new_cases.data[region_index, :] > 0)
+            == nz_case_days_shown + 1
+        )[0][0]
+
+        self.new_cases[region_index, mask_start:] = True
+        self.new_deaths.mask[region_index, mask_start:] = True
+
+        return mask_start
