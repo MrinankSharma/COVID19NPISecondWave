@@ -108,6 +108,7 @@ def candidate_model(
         "infection_noise", dist.Normal(loc=0, scale=jnp.ones((data.nRs, data.nDs)))
     )
 
+    # enforce positivity!
     infections = jax.nn.softplus(
         infections + (infection_noise_scale * infection_noise.T)
     )
@@ -147,12 +148,12 @@ def candidate_model(
     )
 
     iar_noise = jnp.repeat(
-        iar_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
+        iar_noise_scale * noisepoint_log_iar_noise_series,
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
+        ifr_noise_scale * noisepoint_log_ifr_noise_series,
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding]

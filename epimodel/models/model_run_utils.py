@@ -22,7 +22,7 @@ def run_model(
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
     )
-    nuts_kernel = NUTS(model_func, init_strategy=init_to_median)
+    nuts_kernel = NUTS(model_func, init_strategy=init_to_median, target_accept_prob=0.9)
     mcmc = MCMC(
         nuts_kernel,
         num_samples=num_samples,
