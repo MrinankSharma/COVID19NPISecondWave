@@ -147,12 +147,12 @@ def candidate_model(
     )
 
     iar_noise = jnp.repeat(
-        iar_noise_scale * noisepoint_log_iar_noise_series,
+        iar_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * noisepoint_log_ifr_noise_series,
+        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding]
