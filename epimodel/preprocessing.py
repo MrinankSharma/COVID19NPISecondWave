@@ -11,7 +11,7 @@ def preprocess_data(
     data_path,
     last_day="2021-01-09",
     npi_start_col=3,
-    skipcases=10,
+    skipcases=14,
     skipdeaths=30,
     featurizer_dict=None,
 ):
@@ -141,7 +141,7 @@ class PreprocessedData(object):
 
     def featurize(self):
         # everything is hardcoded for now
-        gathering_thresholds = [5, 10, 100, 1000]
+        gathering_thresholds = [6, 30]
         household_thresholds = [2, 5]
         mask_thresholds = [3, 4]
 

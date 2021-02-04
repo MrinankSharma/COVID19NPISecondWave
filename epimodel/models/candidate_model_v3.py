@@ -29,7 +29,9 @@ def candidate_model(
     # partial pool over countries now. i.e., share effects across countries!
     alpha_i = create_intervention_prior(data.nCMs, intervention_prior)
     # full partial pooling of effects i.e., at region level
-    sigma_i = create_partial_pooling_prior(data.nCMs, partial_pooling_prior)
+    sigma_i = numpyro.sample(
+        "sigma_i", dist.HalfNormal(jnp.sqrt((0.1 ** 2) / data.nCMs))
+    )
 
     alpha_ic_noise = numpyro.sample(
         "alpha_ic_noise", dist.Normal(loc=jnp.zeros((data.nCs, data.nCMs)))
@@ -38,7 +40,7 @@ def candidate_model(
     alpha_li = numpyro.deterministic(
         "alpha_ic",
         alpha_i.reshape((1, data.nCMs)).repeat(data.nRs, axis=0)
-        + (data.RC_mat @ (alpha_ic_noise @ jnp.diag(sigma_i.flatten()))),
+        + (data.RC_mat @ (alpha_ic_noise @ sigma_i)),
     )
 
     cm_reduction = jnp.sum(
@@ -48,7 +50,8 @@ def candidate_model(
     basic_R = create_basic_R_prior(data.nRs, basic_r_prior)
 
     # number of 'noise points'
-    nNP = int(data.nDs / r_walk_noise_scale_period) + 1
+    # -1 since first 2 weeks, no change.
+    nNP = int(data.nDs / r_walk_noise_scale_period) - 1
 
     noisepoint_log_Rt_noise_series = numpyro.sample(
         "noisepoint_log_Rt_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
@@ -62,9 +65,17 @@ def candidate_model(
         jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
         r_walk_noise_scale_period,
         axis=-1,
-    )[: data.nRs, : data.nDs]
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + log_Rt_noise
+    )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
+    full_log_Rt_noise = jnp.zeros_like(cm_reduction)
+    full_log_Rt_noise = jax.ops.index_update(
+        full_log_Rt_noise,
+        jax.ops.index[:, 2 * r_walk_noise_scale_period :],
+        log_Rt_noise,
+    )
+
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + full_log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
+    Rt_walk = numpyro.deterministic("Rt_walk", jnp.exp(full_log_Rt_noise))
 
     seeding_padding = 7
     total_padding = ep.GIv.size - 1
@@ -103,7 +114,7 @@ def candidate_model(
     # extra noise, outside the renewal equation. This noise isn't capturing variability in transmission
     # the random walk does this. It adds some robustness when the case count is very small
     infection_noise_scale = numpyro.sample(
-        "infection_noise_scale", dist.HalfNormal(0.5)
+        "infection_noise_scale", dist.HalfNormal(1.0)
     )
     # infection noise is now a normal
     infection_noise = numpyro.sample(
@@ -133,7 +144,7 @@ def candidate_model(
     )
 
     # number of "noisepoints" for these walks
-    nNP = int(data.nDs + seeding_padding / ir_walk_noise_scale_period) + 1
+    nNP = int(data.nDs + seeding_padding / ir_walk_noise_scale_period) - 2
 
     iar_noise_scale = create_noisescale_prior(
         "iar_noise_scale", iar_noisescale_prior, type="ifr/iar"
@@ -150,22 +161,35 @@ def candidate_model(
     )
 
     iar_noise = jnp.repeat(
-        iar_noise_scale * noisepoint_log_iar_noise_series,
+        iar_noise_scale * jnp.cumsum(noisepoint_log_iar_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
-    )[: data.nCs, : data.nDs + seeding_padding]
+    )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * noisepoint_log_ifr_noise_series,
+        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
-    )[: data.nCs, : data.nDs + seeding_padding]
+    )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
 
-    iar_t = numpyro.deterministic("iar_t", iar_0 * jnp.exp(iar_noise))
-    ifr_t = numpyro.deterministic("ifr_t", ifr_0 * jnp.exp(ifr_noise))
+    full_iar_noise = jnp.zeros((data.nCs, data.nDs + seeding_padding))
+    full_ifr_noise = jnp.zeros((data.nCs, data.nDs + seeding_padding))
+    full_iar_noise = jax.ops.index_update(
+        full_iar_noise, jax.ops.index[:, 2 * ir_walk_noise_scale_period :], iar_noise
+    )
+    full_ifr_noise = jax.ops.index_update(
+        full_ifr_noise, jax.ops.index[:, 2 * ir_walk_noise_scale_period :], ifr_noise
+    )
+
+    iar_t = numpyro.deterministic("iar_t", iar_0 * jnp.exp(full_iar_noise))
+    ifr_t = numpyro.deterministic("ifr_t", ifr_0 * jnp.exp(full_ifr_noise))
 
     # use the `RC_mat` to pull the country level change in the rates for the relevant local area
-    future_cases_t = jnp.multiply(total_infections, data.RC_mat @ iar_t)
-    future_deaths_t = jnp.multiply(total_infections, data.RC_mat @ ifr_t)
+    future_cases_t = numpyro.deterministic(
+        "future_cases_t", jnp.multiply(total_infections, data.RC_mat @ iar_t)
+    )
+    future_deaths_t = numpyro.deterministic(
+        "future_cases_t", jnp.multiply(total_infections, data.RC_mat @ ifr_t)
+    )
 
     output_delay_transition = get_output_delay_transition(seeding_padding, data)
     region_cases_delays, region_deaths_delays = ep.get_region_delays()

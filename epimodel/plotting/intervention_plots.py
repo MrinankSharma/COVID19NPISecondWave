@@ -68,7 +68,7 @@ def plot_intervention_correlation(
     newfig=True,
 ):
     if newfig:
-        plt.figure(figsize=(4, 3), dpi=300)
+        plt.figure(figsize=(3, 4.5), dpi=300)
 
     if isinstance(posterior_samples, dict):
         cormat = np.corrcoef(posterior_samples[intervention_varname].T)
