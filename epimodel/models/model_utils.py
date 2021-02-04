@@ -25,7 +25,7 @@ def create_intervention_prior(nCMs, intervention_prior=None):
                 low=-0.1, loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]
             ),
         )
-    if intervention_prior["type"] == "half_normal":
+    elif intervention_prior["type"] == "half_normal":
         alpha_i = numpyro.sample(
             "alpha_i",
             dist.HalfNormal(scale=jnp.ones(nCMs) * intervention_prior["scale"]),
@@ -228,7 +228,7 @@ def create_noisescale_prior(varname, noisescale_prior, type="r_walk"):
         if type == "r_walk":
             noisescale_prior = {"type": "half_normal", "scale": 0.1}
         elif type == "ifr/iar":
-            noisescale_prior = {"type": "half_normal", "scale": 0.01}
+            noisescale_prior = {"type": "half_normal", "scale": 0.005}
 
     if noisescale_prior["type"] == "half_normal":
         var = numpyro.sample(varname, dist.HalfNormal(noisescale_prior["scale"]))
