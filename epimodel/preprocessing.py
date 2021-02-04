@@ -7,13 +7,33 @@ import numpy as np
 import pandas as pd
 
 
+def set_household_limits(active_CMs, household_NPI_index, gathering_NPI_index):
+    nRs, _, nDs = active_CMs.shape
+    new_acms = np.copy(active_CMs)
+    for r in range(nRs):
+        for day in range(nDs):
+            if (
+                active_CMs[r, household_NPI_index, day] == 0
+                or active_CMs[r, gathering_NPI_index, day]
+                < active_CMs[r, household_NPI_index, day]
+            ):
+                new_acms[r, household_NPI_index, day] = active_CMs[
+                    r, gathering_NPI_index, day
+                ]
+    return new_acms
+
+
+def set_all_household_limits(active_CMs):
+    new_acms = np.copy(active_CMs)
+    new_acms = set_household_limits(new_acms, 4, 0)
+    new_acms = set_household_limits(new_acms, 5, 1)
+    new_acms = set_household_limits(new_acms, 6, 2)
+    new_acms = set_household_limits(new_acms, 7, 3)
+    return new_acms
+
+
 def preprocess_data(
-    data_path,
-    last_day="2021-01-09",
-    npi_start_col=3,
-    skipcases=14,
-    skipdeaths=30,
-    featurizer_dict=None,
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=14, skipdeaths=30
 ):
     """
     Process data, return PreprocessedData() object
@@ -68,6 +88,8 @@ def preprocess_data(
 
         for cm_i, cm in enumerate(CMs):
             active_cms[r_i, cm_i, :] = r_df[cm]
+    # set household limits to at least as strong as gathering limits
+    active_cms = set_all_household_limits(active_cms)
 
     # mask days where there are negative cases or deaths - because this
     # is clearly wrong
