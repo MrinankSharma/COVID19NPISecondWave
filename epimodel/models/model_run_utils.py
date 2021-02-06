@@ -26,6 +26,7 @@ def run_model(
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
     )
+    numpyro.set_host_device_count(num_chains)
     nuts_kernel = NUTS(
         model_func,
         init_strategy=init_to_median,
