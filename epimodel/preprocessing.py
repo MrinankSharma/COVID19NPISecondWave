@@ -209,24 +209,13 @@ class PreprocessedData(object):
         self.CMs = all_cm_names
         self.active_cms = all_activecms
 
-    def mask_region(self, region, days_shown=14):
-        """
-        Mask all but the first 14 days of cases and deaths for a specific region
+    def mask_region_by_index(self, region_index, nz_case_days_shown=60):
+        mask_start = np.nonzero(
+            np.cumsum(self.new_cases.data[region_index, :] > 0)
+            == nz_case_days_shown + 1
+        )[0][0]
 
-        :param region: region code (2 digit EpidemicForecasting.org) code to mask
-        :param days: Number of days to provide to the model
-        """
-        i = self.Rs.index(region)
-        c_s = np.nonzero(np.cumsum(self.new_cases.data[i, :] > 0) == days_shown + 1)[0][
-            0
-        ]
-        d_s = np.nonzero(np.cumsum(self.new_deaths.data[i, :] > 0) == days_shown + 1)[0]
-        if len(d_s) > 0:
-            d_s = d_s[0]
-        else:
-            d_s = len(self.Ds)
+        self.new_cases[region_index, mask_start:] = True
+        self.new_deaths.mask[region_index, mask_start:] = True
 
-        self.new_cases.mask[i, c_s:] = True
-        self.new_deaths.mask[i, d_s:] = True
-
-        return c_s, d_s
+        return mask_start
