@@ -6,8 +6,9 @@ Calculate delay distributions and generate delay parameter dictionaries for regi
 Mostly copied from https://github.com/epidemics/COVIDNPIs/blob/manuscript/epimodel/pymc3_models/epi_params.py
 """
 
-import numpy as np
 import pprint
+
+import numpy as np
 
 
 class EpidemiologicalParameters:

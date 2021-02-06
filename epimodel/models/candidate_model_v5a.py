@@ -1,13 +1,12 @@
 import jax
 import jax.numpy as jnp
-
 import numpyro
 import numpyro.distributions as dist
 
 from .model_utils import (
+    create_basic_R_prior,
     create_intervention_prior,
     create_noisescale_prior,
-    create_basic_R_prior,
     create_partial_pooling_prior,
     get_output_delay_transition,
 )

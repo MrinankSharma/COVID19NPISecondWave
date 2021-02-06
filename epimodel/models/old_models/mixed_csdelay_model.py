@@ -1,16 +1,15 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.signal as jss
-
 import numpyro
 import numpyro.distributions as dist
 
 from epimodel.models.model_utils import (
     create_intervention_prior,
     get_discrete_renewal_transition,
+    get_output_delay_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
-    get_output_delay_transition,
 )
 
 

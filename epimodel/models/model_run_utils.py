@@ -1,13 +1,11 @@
+import time
 from datetime import datetime
 
-import time
-import numpy as np
-
-import numpyro
-from numpyro.infer import MCMC, NUTS, init_to_median
-from jax import random
-
 import arviz as az
+import numpy as np
+import numpyro
+from jax import random
+from numpyro.infer import MCMC, NUTS, init_to_median
 
 
 def run_model(

@@ -1,9 +1,9 @@
+import argparse
 import os
 import subprocess
-import argparse
-import yaml
 import time
 
+import yaml
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(

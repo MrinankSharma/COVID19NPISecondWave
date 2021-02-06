@@ -3,10 +3,12 @@
 
 Utilities to support the use of command line sensitivity experiments
 """
-import yaml
-import epimodel.models
-import numpy as np
 import os
+
+import numpy as np
+import yaml
+
+import epimodel.models
 
 
 def get_model_func_from_str(model_type_str):

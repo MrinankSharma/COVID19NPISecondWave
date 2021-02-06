@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.signal as jss
-
 import numpyro
 import numpyro.distributions as dist
 
