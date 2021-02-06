@@ -1,18 +1,17 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.signal as jss
-
 import numpyro
 import numpyro.distributions as dist
 
 from epimodel.models.model_utils import (
+    create_basic_R_prior,
     create_intervention_prior,
+    create_noisescale_prior,
+    create_partial_pooling_prior,
     get_discrete_renewal_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
-    create_noisescale_prior,
-    create_basic_R_prior,
-    create_partial_pooling_prior,
 )
 
 

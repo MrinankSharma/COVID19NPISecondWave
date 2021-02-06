@@ -1,8 +1,7 @@
-from epimodel import EpidemiologicalParameters, run_model, preprocess_data
-
-from datetime import datetime
 import argparse
+from datetime import datetime
 
+from epimodel import EpidemiologicalParameters, preprocess_data, run_model
 from scripts.sensitivity_analysis.utils import *
 
 argparser = argparse.ArgumentParser()

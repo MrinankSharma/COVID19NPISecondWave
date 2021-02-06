@@ -3,7 +3,6 @@ Contains a bunch of model utility functions, used to construct models while tryi
 """
 import jax
 import jax.numpy as jnp
-
 import numpyro
 import numpyro.distributions as dist
 
