@@ -173,6 +173,19 @@ def plot_area_inf_noise_curve(inf_noise, Ds):
     plt.yticks([])
 
 
+def plot_Rt_walk(Rt_walk, Ds, title=""):
+    li, lq, m, uq, ui = np.percentile(Rt_walk, [2.5, 25, 50, 75, 97.5], axis=0)
+
+    plt.plot(Ds, m, color="k")
+    plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="k", alpha=0.3, linewidth=0)
+    plt.plot([Ds[0], Ds[-1]], [1, 1], color="tab:red", linewidth=0.5)
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    plt.xlim([Ds[0], Ds[-1]])
+    plt.title(title)
+
+
 def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     plt.figure(figsize=(6, 8), dpi=300)
 
@@ -194,10 +207,11 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     )
 
     plt.subplot(513)
-    expected_cases = posterior_samples["future_cases"][:, region_index, :]
-    plot_area_cases_curve(expected_cases, None, expected_cases, data.Ds)
+    future_cases = posterior_samples["future_cases_t"][:, region_index, 7:]
+    plot_area_infections_curve(future_cases, data.Ds)
+    plt.ylabel("Future Cases")
 
-    plt.subplot(515)
+    plt.subplot(514)
     expected_cases = posterior_samples["expected_cases"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
     new_cases = data.new_cases[region_index, :]
