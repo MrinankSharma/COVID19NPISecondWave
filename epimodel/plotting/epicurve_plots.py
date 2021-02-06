@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -39,15 +39,16 @@ def plot_area_infections_curve(area_infections, Ds, title=None):
 
     plt.yticks(fontsize=8)
     plt.ylabel("$N_t$")
+    plt.yscale("log")
 
 
 def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     nS, nDs = expected_cases.shape
-    output_cases = np.random.negative_binomial(
-        psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
-        psi_cases.reshape((nS, 1)) / (expected_cases + psi_cases.reshape((nS, 1))),
-    )
-    li, lq, m, uq, ui = np.percentile(output_cases, [2.5, 25, 50, 75, 97.5], axis=0)
+    # output_cases = np.random.negative_binomial(
+    #     psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
+    #     psi_cases.reshape((nS, 1)) / (expected_cases + psi_cases.reshape((nS, 1))),
+    # )
+    li, lq, m, uq, ui = np.percentile(expected_cases, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
     plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
@@ -62,16 +63,17 @@ def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     plt.xlim([Ds[0], Ds[-1]])
 
     plt.yticks(fontsize=8)
-    plt.ylabel("$N_t$")
+    plt.ylabel("Cases")
+    plt.yscale("log")
 
 
 def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
     nS, nDs = expected_deaths.shape
-    output_deaths = np.random.negative_binomial(
-        psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
-        psi_deaths.reshape((nS, 1)) / (expected_deaths + psi_deaths.reshape((nS, 1))),
-    )
-    li, lq, m, uq, ui = np.percentile(output_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
+    # output_deaths = np.random.negative_binomial(
+    #     psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
+    #     psi_deaths.reshape((nS, 1)) / (expected_deaths + psi_deaths.reshape((nS, 1))),
+    # )
+    li, lq, m, uq, ui = np.percentile(expected_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="k")
     plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
@@ -86,7 +88,8 @@ def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=No
     plt.xlim([Ds[0], Ds[-1]])
 
     plt.yticks(fontsize=8)
-    plt.ylabel("$N_t$")
+    plt.ylabel("Deaths")
+    plt.yscale("log")
 
 
 def add_cms_to_plot(cm_names, active_cms, Ds):
@@ -106,7 +109,9 @@ def add_cms_to_plot(cm_names, active_cms, Ds):
                     plt.text(
                         Ds[diff_date],
                         20 - change_i,
-                        cm_names[cm_i],
+                        cm_names[cm_i]
+                        if cm_diff[cm_i, diff_date] == 1
+                        else f"{cm_names[cm_i]} lifted",
                         fontsize=4,
                         ha="left" if diff_date_i % 2 == 1 else "right",
                         rotation=45 if diff_date_i % 2 == 1 else -45,
@@ -135,8 +140,8 @@ def plot_area_ifr_curve(ifr, Ds, title=None):
     plt.ylabel("IFR$_t$")
 
 
-def plot_area_iar_curve(ifr, Ds, title=None):
-    li, lq, m, uq, ui = np.percentile(ifr, [2.5, 25, 50, 75, 97.5], axis=0)
+def plot_area_iar_curve(iar, Ds, title=None):
+    li, lq, m, uq, ui = np.percentile(iar, [2.5, 25, 50, 75, 97.5], axis=0)
 
     plt.plot(Ds, m, color="tab:blue")
     plt.fill_between(Ds, li, ui, color="tab:blue", alpha=0.1, linewidth=0)
@@ -153,10 +158,38 @@ def plot_area_iar_curve(ifr, Ds, title=None):
     plt.ylabel("IAR$_t$")
 
 
-def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
-    plt.figure(figsize=(8, 8), dpi=300)
+def plot_area_inf_noise_curve(inf_noise, Ds):
+    li, lq, m, uq, ui = np.percentile(inf_noise, [2.5, 25, 50, 75, 97.5], axis=0)
 
-    plt.subplot(611)
+    plt.plot(Ds, m, color="tab:brown")
+    plt.fill_between(Ds, li, ui, color="tab:brown", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="tab:brown", alpha=0.3, linewidth=0)
+    plt.plot([Ds[0], Ds[-1]], [0, 0], color="tab:red", linewidth=0.25)
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    plt.xticks([])
+    plt.xlim([Ds[0], Ds[-1]])
+    plt.ylim([-4, 4])
+    plt.yticks([])
+
+
+def plot_Rt_walk(Rt_walk, Ds, title=""):
+    li, lq, m, uq, ui = np.percentile(Rt_walk, [2.5, 25, 50, 75, 97.5], axis=0)
+
+    plt.plot(Ds, m, color="k")
+    plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="k", alpha=0.3, linewidth=0)
+    plt.plot([Ds[0], Ds[-1]], [1, 1], color="tab:red", linewidth=0.5)
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    plt.xlim([Ds[0], Ds[-1]])
+    plt.title(title)
+
+
+def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
+    plt.figure(figsize=(6, 8), dpi=300)
+
+    plt.subplot(511)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
     area_active_cms = data.active_cms[region_index, :, :]
     plot_area_transmission_curve(area_Rt_samples, data.Ds)
@@ -165,31 +198,30 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
     else:
         add_cms_to_plot(cm_names, area_active_cms, data.Ds)
 
-    plt.subplot(612)
+    plt.subplot(512)
     area_infections = posterior_samples["total_infections"][:, region_index, 7:]
     plot_area_infections_curve(area_infections, data.Ds)
+    plt.twinx()
+    plot_area_inf_noise_curve(
+        posterior_samples["infection_noise"][:, region_index, :], data.Ds
+    )
 
-    plt.subplot(613)
+    plt.subplot(513)
+    future_cases = posterior_samples["future_cases_t"][:, region_index, 7:]
+    plot_area_infections_curve(future_cases, data.Ds)
+    plt.ylabel("Future Cases")
+
+    plt.subplot(514)
     expected_cases = posterior_samples["expected_cases"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
     new_cases = data.new_cases[region_index, :]
     plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
-    plt.subplot(614)
+    plt.subplot(515)
     expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
     psi_deaths = posterior_samples["psi_deaths"]
     new_deaths = data.new_deaths[region_index, :]
     plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
-
-    plt.subplot(615)
-    if "iar_r" in posterior_samples.keys():
-        area_iar = posterior_samples["iar_t"][:, region_index, 7:]
-        plot_area_iar_curve(area_iar, data.Ds, None)
-
-    plt.subplot(616)
-    if "ifr_r" in posterior_samples.keys():
-        area_ifr = posterior_samples["ifr_t"][:, region_index, 7:]
-        plot_area_iar_curve(area_ifr, data.Ds, None)
 
     plt.suptitle(data.Rs[region_index], fontsize=10)
     plt.tight_layout()

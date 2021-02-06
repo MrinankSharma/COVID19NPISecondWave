@@ -1,19 +1,19 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.signal as jss
-
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
+from epimodel.models.model_utils import (
     create_intervention_prior,
     get_discrete_renewal_transition,
+    get_output_delay_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
 )
 
 
-def mixed_intervention_rw_model(
+def mixed_csdelay_model(
     data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs
 ):
     alpha_i = create_intervention_prior(data.nCMs)
@@ -23,7 +23,7 @@ def mixed_intervention_rw_model(
     # setting it to be at about 1 seems pretty reasonable to me.
     basic_R = numpyro.sample(
         "basic_R",
-        dist.TruncatedNormal(low=0.1, loc=1.1 * jnp.ones(data.nRs), scale=0.2),
+        dist.TruncatedNormal(low=0.1, loc=1.5 * jnp.ones(data.nRs), scale=0.2),
     )
 
     # number of 'noise points'
@@ -69,18 +69,14 @@ def mixed_intervention_rw_model(
     future_cases_t = total_infections
     future_deaths_t = jnp.multiply(total_infections, cfr)
 
-    ## at the moment, this is technically neglecting the very earliest infections
-    expected_cases = numpyro.deterministic(
-        "expected_cases",
-        jss.convolve2d(future_cases_t, ep.DPCv, mode="full")[
-            :, seeding_padding : data.nDs + seeding_padding
-        ],
+    output_delay_transition = get_output_delay_transition(seeding_padding, data)
+
+    _, expected_observations = jax.lax.scan(
+        output_delay_transition,
+        0.0,
+        [future_cases_t, future_deaths_t, ep.DPCv_pa, ep.DPDv_pa],
     )
-    expected_deaths = numpyro.deterministic(
-        "expected_deaths",
-        jss.convolve2d(future_deaths_t, ep.DPDv, mode="full")[
-            :, seeding_padding : data.nDs + seeding_padding
-        ],
-    )
+    expected_cases = numpyro.deterministic("expected_cases", expected_observations[0])
+    expected_deaths = numpyro.deterministic("expected_deaths", expected_observations[1])
 
     observe_cases_deaths(data, expected_cases, expected_deaths)
