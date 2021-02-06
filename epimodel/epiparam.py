@@ -6,8 +6,9 @@ Calculate delay distributions and generate delay parameter dictionaries for regi
 Mostly copied from https://github.com/epidemics/COVIDNPIs/blob/manuscript/epimodel/pymc3_models/epi_params.py
 """
 
-import numpy as np
 import pprint
+
+import numpy as np
 
 
 class EpidemiologicalParameters:
@@ -19,8 +20,11 @@ class EpidemiologicalParameters:
     def __init__(
         self,
         generation_interval=None,
-        infection_to_fatality_delay=None,
-        infection_to_reporting_delay=None,
+        infection_to_fatality_delays=None,
+        infection_to_reporting_delays=None,
+        gi_truncation=28,
+        cd_truncation=32,
+        dd_truncation=48,
     ):
         """
         Constructor
@@ -47,39 +51,98 @@ class EpidemiologicalParameters:
                 "dist": "gamma",
             }
 
-        if infection_to_fatality_delay is not None:
-            self.infection_to_fatality_delay = infection_to_fatality_delay
+        if infection_to_fatality_delays is not None:
+            self.infection_to_fatality_delays = infection_to_fatality_delays
         else:
-            self.infection_to_fatality_delay = {
-                "mean": 21.82,
-                "disp": 14.26,
-                "dist": "negbinom",
+            self.infection_to_fatality_delays = {
+                "England": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
+                "Austria": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
+                "Italy": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
+                "Germany": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
+                "Czech": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
             }
 
-        if infection_to_reporting_delay is not None:
-            self.infection_to_reporting_delay = infection_to_reporting_delay
+        if infection_to_reporting_delays is not None:
+            self.infection_to_reporting_delays = infection_to_reporting_delays
         else:
-            self.infection_to_reporting_delay = {
-                "mean": 10.93,
-                "disp": 5.41,
-                "dist": "negbinom",
+            self.infection_to_reporting_delays = {
+                "England": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
+                "Austria": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
+                "Italy": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
+                "Germany": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
+                "Czech": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
             }
 
-        self.DPCv, self.DPDv, self.GIv = self.generate_all_delay_vectors()
+        self.gi_truncation = gi_truncation
+        self.cd_truncation = cd_truncation
+        self.dd_truncation = dd_truncation
+
+        self.GIv = self.generate_dist_vector(
+            self.generation_interval, int(1e7), self.gi_truncation
+        )
 
         self.GI_projmat = np.zeros((self.GIv.size - 1, self.GIv.size - 1))
         for i in range(self.GIv.size - 2):
             self.GI_projmat[i + 1, i] = 1
         self.GI_projmat[:, -1] = self.GIv[:, ::-1][:, :-1]
-
         self.GI_flat_rev = self.GIv[:, 1:][:, ::-1].flatten()
 
-        # TODO: at the moment, this just assumes the delay is identical for all of the regions
-        # TODO: Ideally, we have a nice way of setting per country delays or similar
-        # TODO: It also hardcodes the number of regions at 80
-        # TODO: Ideally this class has all information about 'epi-parameters'.
-        self.DPCv_pa = np.repeat(self.DPCv, 80, axis=0)
-        self.DPDv_pa = np.repeat(self.DPDv, 80, axis=0)
+        assert set(self.infection_to_reporting_delays.keys()) == set(
+            self.infection_to_fatality_delays.keys()
+        )
+
+        for k in self.infection_to_reporting_delays.keys():
+            DPC_cs = self.generate_dist_vector(
+                self.infection_to_reporting_delays[k], int(1e7), self.cd_truncation
+            )
+            DPD_cs = self.generate_dist_vector(
+                self.infection_to_fatality_delays[k], int(1e7), self.dd_truncation
+            )
+            self.infection_to_reporting_delays[k]["vector"] = DPC_cs
+            self.infection_to_fatality_delays[k]["vector"] = DPD_cs
+
+        self.DPCv_pa = None
+        self.DPDv_pa = None
 
     def generate_dist_samples(self, dist, nRVs):
         """
@@ -140,6 +203,20 @@ class EpidemiologicalParameters:
         """
         samples = self.generate_dist_samples(dist, nRVs)
         return self.discretise_samples(samples, truncation)
+
+    def populate_region_delays(self, data):
+        # populate delays
+        # at the moment, just copies global across all countries
+
+        self.DPCv_pa = np.zeros((data.nRs, self.cd_truncation))
+        self.DPDv_pa = np.zeros((data.nRs, self.dd_truncation))
+
+        for r_i, c in enumerate(data.Cs):
+            self.DPCv_pa[r_i, :] = self.infection_to_reporting_delays[c]["vector"]
+            self.DPDv_pa[r_i, :] = self.infection_to_fatality_delays[c]["vector"]
+
+    def get_region_delays(self):
+        return self.DPCv_pa, self.DPDv_pa
 
     def generate_all_delay_vectors(
         self, nRVs=int(1e7), max_reporting=32, max_fatality=48, max_gi=28

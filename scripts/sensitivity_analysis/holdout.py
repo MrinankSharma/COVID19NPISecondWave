@@ -5,8 +5,8 @@ sys.path.append(os.getcwd())  # add current working directory to the path
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
-from datetime import datetime
 import argparse
+from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(

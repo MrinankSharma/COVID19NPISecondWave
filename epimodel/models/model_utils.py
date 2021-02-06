@@ -3,14 +3,19 @@ Contains a bunch of model utility functions, used to construct models while tryi
 """
 import jax
 import jax.numpy as jnp
-
 import numpyro
 import numpyro.distributions as dist
+
+from epimodel.distributions import AsymmetricLaplace
 
 
 def create_intervention_prior(nCMs, intervention_prior=None):
     if intervention_prior is None:
-        intervention_prior = {"type": "normal", "scale": 0.1}
+        intervention_prior = {
+            "type": "asymmetric_laplace",
+            "scale": 55,
+            "asymmetry": 0.5,
+        }
 
     if intervention_prior["type"] == "trunc_normal":
         alpha_i = numpyro.sample(
@@ -19,15 +24,29 @@ def create_intervention_prior(nCMs, intervention_prior=None):
                 low=-0.1, loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]
             ),
         )
+    elif intervention_prior["type"] == "half_normal":
+        alpha_i = numpyro.sample(
+            "alpha_i",
+            dist.HalfNormal(scale=jnp.ones(nCMs) * intervention_prior["scale"]),
+        )
     elif intervention_prior["type"] == "normal":
         alpha_i = numpyro.sample(
             "alpha_i",
             dist.Normal(loc=jnp.zeros(nCMs), scale=intervention_prior["scale"]),
         )
+    elif intervention_prior["type"] == "asymmetric_laplace":
+        alpha_i = numpyro.sample(
+            "alpha_i",
+            AsymmetricLaplace(
+                asymmetry=intervention_prior["asymmetry"],
+                scale=jnp.ones(nCMs) * intervention_prior["scale"],
+            ),
+        )
     else:
         raise ValueError(
-            "Intervention effect prior must take a value in [trunc_normal]"
+            "Intervention effect prior must take a value in [trunc_normal, normal, asymmetric_laplace]"
         )
+
     return alpha_i
 
 
@@ -218,12 +237,12 @@ def create_basic_R_prior(nRs, basic_r_prior=None):
     return basic_R
 
 
-def create_noisescale_prior(varname, noisescale_prior):
+def create_noisescale_prior(varname, noisescale_prior, type="r_walk"):
     if noisescale_prior is None:
-        if "r_walk" in varname:
-            noisescale_prior = {"type": "half_normal", "scale": 0.05}
-        else:
-            noisescale_prior = {"type": "half_normal", "scale": 0.05}
+        if type == "r_walk":
+            noisescale_prior = {"type": "half_normal", "scale": 0.1}
+        elif type == "ifr/iar":
+            noisescale_prior = {"type": "half_normal", "scale": 0.005}
 
     if noisescale_prior["type"] == "half_normal":
         var = numpyro.sample(varname, dist.HalfNormal(noisescale_prior["scale"]))
@@ -243,6 +262,40 @@ def create_partial_pooling_prior(nCMs, partial_pooling_prior):
             dist.HalfNormal(partial_pooling_prior["scale"] * jnp.ones((1, nCMs))),
         )
     else:
-        raise ValueError("Noisescale prior type must be in [half_normal]")
+        raise ValueError("Partial pooling prior type must be in [half_normal]")
 
     return var
+
+
+def observe_subset_cases_deaths(
+    subset_name, new_cases, new_deaths, expected_cases, expected_deaths
+):
+    """
+    Observation model
+
+    :param data: PreprocessedData Object
+    :param expected_cases: Expected Cases - nRs x nDs array
+    :param expected_deaths: Expected Deaths - nRs x nDs array
+    """
+    psi_cases = numpyro.sample(f"psi_cases_{subset_name}", dist.HalfNormal(5))
+    psi_deaths = numpyro.sample(f"psi_deaths_{subset_name}", dist.HalfNormal(5))
+
+    with numpyro.handlers.mask(mask=jnp.logical_not(new_cases.mask)):
+        observed_cases = numpyro.sample(
+            f"observed_cases_{subset_name}",
+            dist.GammaPoisson(
+                concentration=psi_cases,
+                rate=psi_cases / expected_cases,
+            ),
+            obs=new_cases.data,
+        )
+
+    with numpyro.handlers.mask(mask=jnp.logical_not(new_deaths.mask)):
+        observed_deaths = numpyro.sample(
+            f"observed_deaths_{subset_name}",
+            dist.GammaPoisson(
+                concentration=psi_deaths,
+                rate=psi_deaths / expected_deaths,
+            ),
+            obs=new_deaths.data,
+        )
