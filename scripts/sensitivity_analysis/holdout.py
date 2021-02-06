@@ -1,9 +1,12 @@
+import sys, os
+
+sys.path.append(os.getcwd())  # add current working directory to the path
+
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
+from epimodel.script_utils import *
 
 from datetime import datetime
 import argparse
-
-from scripts.sensitivity_analysis.utils import *
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
@@ -13,8 +16,10 @@ add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
 if __name__ == "__main__":
+    print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize()
+    print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
 
