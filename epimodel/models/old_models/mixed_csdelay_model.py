@@ -5,7 +5,7 @@ import jax.scipy.signal as jss
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
+from epimodel.models.model_utils import (
     create_intervention_prior,
     get_discrete_renewal_transition,
     observe_cases_deaths,

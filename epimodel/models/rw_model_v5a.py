@@ -13,6 +13,15 @@ from .model_utils import (
 )
 
 
+"""
+What have I done here:
+* removed pooling
+* removed variability hyperprior
+* increased random walk width
+* increased prior width
+"""
+
+
 def candidate_model(
     data,
     ep,
@@ -26,28 +35,13 @@ def candidate_model(
     ir_walk_noise_scale_period=14,
     **kwargs
 ):
-    # partial pool over countries now. i.e., share effects across countries!
-    alpha_i = create_intervention_prior(data.nCMs, intervention_prior)
-    # full partial pooling of effects i.e., at region level
-    sigma_i = numpyro.sample(
-        "sigma_i", dist.HalfNormal(jnp.sqrt((0.1 ** 2) / data.nCMs))
+    basic_R_variability = numpyro.sample("basic_R_variability", dist.HalfNormal(0.25))
+    basic_R_noise = numpyro.sample(
+        "basic_R_noise", dist.Normal(loc=0, scale=jnp.ones(data.nRs))
     )
-
-    alpha_ic_noise = numpyro.sample(
-        "alpha_ic_noise", dist.Normal(loc=jnp.zeros((data.nCs, data.nCMs)))
+    basic_R = jnp.clip(
+        basic_R_noise * basic_R_variability + 1.1, a_min=1e-3, a_max=None
     )
-
-    alpha_li = numpyro.deterministic(
-        "alpha_ic",
-        alpha_i.reshape((1, data.nCMs)).repeat(data.nRs, axis=0)
-        + (data.RC_mat @ (alpha_ic_noise * sigma_i)),
-    )
-
-    cm_reduction = jnp.sum(
-        data.active_cms * alpha_li.reshape((data.nRs, data.nCMs, 1)), axis=1
-    )
-
-    basic_R = create_basic_R_prior(data.nRs, basic_r_prior)
 
     # number of 'noise points'
     # -1 since first 2 weeks, no change.
@@ -58,7 +52,7 @@ def candidate_model(
     )
 
     r_walk_noise_scale = create_noisescale_prior(
-        "r_walk_noise_scale", r_walk_noisescale_prior, type="r_walk"
+        "r_walk_noise_scale", {"type": "half_normal", "scale": 0.15}, type="r_walk"
     )
 
     log_Rt_noise = jnp.repeat(
@@ -66,14 +60,14 @@ def candidate_model(
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
-    full_log_Rt_noise = jnp.zeros_like(cm_reduction)
+    full_log_Rt_noise = jnp.zeros((data.nRs, data.nDs))
     full_log_Rt_noise = jax.ops.index_update(
         full_log_Rt_noise,
         jax.ops.index[:, 2 * r_walk_noise_scale_period :],
         log_Rt_noise,
     )
 
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + full_log_Rt_noise
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) + full_log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
     Rt_walk = numpyro.deterministic("Rt_walk", jnp.exp(full_log_Rt_noise))
 
@@ -122,8 +116,8 @@ def candidate_model(
     )
 
     # enforce positivity!
-    infections = jax.nn.softplus(
-        infections + (infection_noise_scale * infection_noise.T)
+    infections = jnp.clip(
+        infections + (infection_noise_scale * infection_noise.T), a_min=0, a_max=None
     )
 
     total_infections = jax.ops.index_update(
@@ -140,7 +134,7 @@ def candidate_model(
     # country level random walks for IFR/IAR changes. Note: country level, **not** area level.
     iar_0 = 1.0
     ifr_0 = numpyro.sample(
-        "ifr_0", dist.Uniform(low=0.01, high=jnp.ones((data.nCs, 1)))
+        "ifr_0", dist.Uniform(low=1e-3, high=jnp.ones((data.nCs, 1)))
     )
 
     # number of "noisepoints" for these walks

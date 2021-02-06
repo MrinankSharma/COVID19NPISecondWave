@@ -5,20 +5,14 @@ import jax.scipy.signal as jss
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
-    create_intervention_prior,
+from epimodel.models.model_utils import (
     get_discrete_renewal_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
 )
 
 
-def mixed_intervention_rw_model(
-    data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs
-):
-    alpha_i = create_intervention_prior(data.nCMs)
-    cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
-
+def rw_model(data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs):
     # looking at most places in UK, austria, R estimates from the imperial report seem to be at about 1 in local areas
     # setting it to be at about 1 seems pretty reasonable to me.
     basic_R = numpyro.sample(
@@ -36,7 +30,7 @@ def mixed_intervention_rw_model(
         noise_scale_period,
         axis=-1,
     )[: data.nRs, : data.nDs]
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + log_Rt_noise
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) + log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
 
     (
@@ -45,7 +39,6 @@ def mixed_intervention_rw_model(
         infection_noise,
         seeding_padding,
     ) = setup_dr_infection_model(data, ep)
-
     discrete_renewal_transition = get_discrete_renewal_transition(ep)
 
     # we need to transpose R because jax.lax.scan scans over the first dimension. We want to scan over time
