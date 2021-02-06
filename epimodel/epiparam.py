@@ -74,7 +74,7 @@ class EpidemiologicalParameters:
                     "disp": 14.26,
                     "dist": "negbinom",
                 },
-                "Czechia": {
+                "Czech": {
                     "mean": 21.82,
                     "disp": 14.26,
                     "dist": "negbinom",
@@ -105,7 +105,7 @@ class EpidemiologicalParameters:
                     "disp": 5.41,
                     "dist": "negbinom",
                 },
-                "Czechia": {
+                "Czech": {
                     "mean": 10.93,
                     "disp": 5.41,
                     "dist": "negbinom",

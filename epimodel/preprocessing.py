@@ -181,7 +181,7 @@ class PreprocessedData(object):
             s_i = i * len(gathering_thresholds)
             for t_i, t in enumerate(gathering_thresholds):
                 gathering_cms[:, s_i + t_i, :] = np.logical_and(
-                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t_i
+                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
                 )
                 gathering_cm_names.append(f"{self.CMs[i]}ed to {t}")
 
@@ -189,7 +189,7 @@ class PreprocessedData(object):
             s_i = h_npi_i * len(household_thresholds)
             for t_i, t in enumerate(household_thresholds):
                 household_cms[:, s_i + t_i, :] = np.logical_and(
-                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t_i
+                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
                 )
                 household_cm_names.append(f"{self.CMs[i]}ed to {t}")
 
