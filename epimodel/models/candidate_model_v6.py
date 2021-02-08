@@ -20,7 +20,7 @@ What have I done here:
 """
 
 
-def candidate_model_v5a(
+def candidate_model_v6(
     data,
     ep,
     intervention_prior=None,
@@ -53,16 +53,17 @@ def candidate_model_v5a(
     # -1 since first 2 weeks, no change.
     nNP = int(data.nDs / r_walk_noise_scale_period) - 1
 
-    noisepoint_log_Rt_noise_series = numpyro.sample(
-        "noisepoint_log_Rt_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
-    )
-
     r_walk_noise_scale = create_noisescale_prior(
         "r_walk_noise_scale", {"type": "half_normal", "scale": 0.15}, type="r_walk"
     )
 
+    noisepoint_log_Rt_noise_series = numpyro.sample(
+        "noisepoint_log_Rt_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nRs, nNP)), scale=r_walk_noise_scale),
+    )
+
     log_Rt_noise = jnp.repeat(
-        jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
+        jnp.cumsum(noisepoint_log_Rt_noise_series, axis=-1),
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
@@ -122,8 +123,8 @@ def candidate_model_v5a(
     )
 
     # enforce positivity!
-    infections = jnp.clip(
-        infections + (infection_noise_scale * infection_noise.T), a_min=0, a_max=None
+    infections = jax.nn.softplus(
+        infections + (infection_noise_scale * infection_noise.T)
     )
 
     total_infections = jax.ops.index_update(
@@ -149,15 +150,12 @@ def candidate_model_v5a(
     iar_noise_scale = create_noisescale_prior(
         "iar_noise_scale", iar_noisescale_prior, type="ifr/iar"
     )
-    ifr_noise_scale = create_noisescale_prior(
-        "ifr_noise_scale", ifr_noisescale_prior, type="ifr/iar"
-    )
 
     noisepoint_log_iar_noise_series = numpyro.sample(
-        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)))
     )
     noisepoint_log_ifr_noise_series = numpyro.sample(
-        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)))
     )
 
     iar_noise = jnp.repeat(
@@ -166,7 +164,7 @@ def candidate_model_v5a(
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
+        iar_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]

@@ -21,7 +21,7 @@ What have I done here:
 """
 
 
-def candidate_model(
+def rw_model(
     data,
     ep,
     intervention_prior=None,

@@ -8,12 +8,12 @@ import os
 import numpy as np
 import yaml
 
-import epimodel.models
+import epimodel.models.candidate_model_v5a
 
 
 def get_model_func_from_str(model_type_str):
     if model_type_str == "candidate":
-        return epimodel.models.candidate_model
+        return epimodel.models.candidate_model_v5a
 
 
 def get_target_accept_from_model_str(model_type_str):
@@ -74,7 +74,7 @@ def pprint_mb_dict(d):
 
 def generate_base_output_dir(model_type, model_config, exp_tag):
     out_path = os.path.join(
-        "sensitivity_analysis", f"{model_type}c{model_config}", exp_tag
+        "sensitivity_analysis", f"{model_type};{model_config}", exp_tag
     )
     if not os.path.exists(out_path):
         os.makedirs(out_path)

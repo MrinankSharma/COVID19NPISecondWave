@@ -14,14 +14,13 @@ from .model_utils import (
 
 """
 What have I done here:
-* removed pooling
-* removed variability hyperprior
-* increased random walk width
-* increased prior width
+* added pooling
+* clips instead
+
 """
 
 
-def candidate_model(
+def candidate_model_v5b(
     data,
     ep,
     intervention_prior=None,
@@ -38,22 +37,9 @@ def candidate_model(
     alpha_i = create_intervention_prior(
         data.nCMs, {"type": "asymmetric_laplace", "scale": 40, "asymmetry": 0.5}
     )
-    # country level partial pooling, but the noise scale hardcoded at the moment
-    sigma_i = jnp.sqrt((0.1 ** 2) / data.nCMs)
 
-    alpha_ic_noise = numpyro.sample(
-        "alpha_ic_noise", dist.Normal(loc=jnp.zeros((data.nCs, data.nCMs)))
-    )
-
-    alpha_li = numpyro.deterministic(
-        "alpha_ic",
-        alpha_i.reshape((1, data.nCMs)).repeat(data.nRs, axis=0)
-        + (data.RC_mat @ (alpha_ic_noise * sigma_i)),
-    )
-
-    cm_reduction = jnp.sum(
-        data.active_cms * alpha_li.reshape((data.nRs, data.nCMs, 1)), axis=1
-    )
+    # no more partial pooling
+    cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
     basic_R_variability = numpyro.sample("basic_R_variability", dist.HalfNormal(0.25))
     basic_R_noise = numpyro.sample(
@@ -136,8 +122,8 @@ def candidate_model(
     )
 
     # enforce positivity!
-    infections = jnp.clip(
-        infections + (infection_noise_scale * infection_noise.T), a_min=0, a_max=None
+    infections = jax.nn.softplus(
+        infections + (infection_noise_scale * infection_noise.T)
     )
 
     total_infections = jax.ops.index_update(

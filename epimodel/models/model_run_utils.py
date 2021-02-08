@@ -4,6 +4,7 @@ from datetime import datetime
 import arviz as az
 import numpy as np
 import numpyro
+import yaml
 from jax import random
 from numpyro.infer import MCMC, NUTS, init_to_median
 
@@ -20,6 +21,7 @@ def run_model(
     save_results=True,
     output_fname=None,
     model_kwargs=None,
+    save_yaml=False,
 ):
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
@@ -38,11 +40,42 @@ def run_model(
     )
     rng_key = random.PRNGKey(0)
 
+    info_dict = {
+        "model_name": model_func.__name__,
+    }
+
     start = time.time()
     if model_kwargs is None:
         model_kwargs = {}
 
-    res = mcmc.run(rng_key, data, ep, **model_kwargs)
+    # also collect some extra information for better diagonstics!
+    print("Warmup")
+    mcmc.warmup(
+        rng_key,
+        data,
+        ep,
+        **model_kwargs,
+        collect_warmup=True,
+        extra_fields=["num_steps", "mean_accept_prob"],
+    )
+    mcmc.get_extra_fields()["num_steps"].block_until_ready()
+
+    info_dict["warmup"] = {}
+    info_dict["warmup"]["num_steps"] = np.array(
+        mcmc.get_extra_fields()["num_steps"]
+    ).tolist()
+    info_dict["warmup"]["mean_accept_prob"] = np.array(
+        mcmc.get_extra_fields()["mean_accept_prob"]
+    ).tolist()
+
+    print("Sample")
+    mcmc.run(
+        rng_key,
+        data,
+        ep,
+        **model_kwargs,
+        extra_fields=["num_steps", "mean_accept_prob"],
+    )
 
     posterior_samples = mcmc.get_samples()
     # if you don't block this, the timer won't quite work properly.
@@ -52,11 +85,8 @@ def run_model(
     time_per_sample = float(end - start) / num_samples
     divergences = int(mcmc.get_extra_fields()["diverging"].sum())
 
-    info_dict = {
-        "time_per_sample": time_per_sample,
-        "divergences": divergences,
-        "model_name": model_func.__name__,
-    }
+    info_dict["time_per_sample"] = time_per_sample
+    info_dict["divergences"] = divergences
 
     print(f"Sampling {num_samples} samples per chain took {end - start:.2f}s")
     print(f"There were {divergences} divergences.")
@@ -70,12 +100,15 @@ def run_model(
         )
         all_ess = np.append(all_ess, ess)
 
+    print(f"{np.sum(np.isnan(all_ess))}  ESS were nan")
+    all_ess = all_ess[np.logical_not(np.isnan(all_ess))]
+
     info_dict["ess"] = {
         "med": float(np.percentile(all_ess, 50)),
-        "2.5": float(np.percentile(all_ess, 97.5)),
-        "97.5": float(np.percentile(all_ess, 2.5)),
-        "min": float(np.max(all_ess)),
-        "max": float(np.min(all_ess)),
+        "lower": float(np.percentile(all_ess, 2.5)),
+        "upper": float(np.percentile(all_ess, 97.5)),
+        "min": float(np.min(all_ess)),
+        "max": float(np.max(all_ess)),
     }
     print(
         f"Mean ESS: {info_dict['ess']['med']:.2f} [{info_dict['ess']['2.5']:.2f} ... {info_dict['ess']['97.5']:.2f}]"
@@ -91,8 +124,8 @@ def run_model(
 
         info_dict["rhat"] = {
             "med": float(np.percentile(all_rhat, 50)),
-            "2.5": float(np.percentile(all_rhat, 97.5)),
-            "97.5": float(np.percentile(all_rhat, 2.5)),
+            "lower": float(np.percentile(all_rhat, 97.5)),
+            "upper": float(np.percentile(all_rhat, 2.5)),
             "min": float(np.max(all_rhat)),
             "max": float(np.min(all_rhat)),
         }
@@ -102,6 +135,7 @@ def run_model(
         )
 
     if save_results:
+        print("Saving .netcdf")
         try:
             inf_data = az.from_numpyro(mcmc)
 
@@ -109,6 +143,12 @@ def run_model(
                 output_fname = f'{model_func.__name__}-{datetime.now(tz=None).strftime("%d-%m;%H-%M-%S")}.netcdf'
 
             az.to_netcdf(inf_data, output_fname)
+
+            yml_fname = output_fname.replace(".netcdf", ".yaml")
+            if save_yaml:
+                print("Saving Yaml")
+                with open(yml_fname, "w") as f:
+                    yaml.dump(info_dict, f, sort_keys=True)
 
         except Exception as e:
             print(e)

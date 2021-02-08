@@ -21,7 +21,7 @@ What have I done here:
 """
 
 
-def candidate_model(
+def intervention_model(
     data,
     ep,
     intervention_prior=None,
@@ -63,7 +63,7 @@ def candidate_model(
     )
 
     log_Rt_noise = jnp.repeat(
-        jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
+        r_walk_noise_scale * noisepoint_log_Rt_noise_series,
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
