@@ -1804,7 +1804,7 @@ def candidate_model_v7_weekly_inf_noise(
     # infection noise is now a normal
     noisepoint_infection_noise = numpyro.sample(
         "noisepoint_infection_noise",
-        dist.Normal(loc=0, scale=jnp.ones((nNP, data.nDs))),
+        dist.Normal(loc=0, scale=jnp.ones((data.nRs, nNP))),
     )
 
     infection_noise = jnp.repeat(
@@ -2022,19 +2022,15 @@ def candidate_model_v7_alt_conv(
         "infection_noise_scale", dist.HalfNormal(0.5)
     )
 
-    nNP = int(data.nDs / r_walk_noise_scale_period) + 1
-
-    # infection noise is now a normal
-    noisepoint_infection_noise = numpyro.sample(
-        "noisepoint_infection_noise",
-        dist.Normal(loc=0, scale=jnp.ones((nNP, data.nDs))),
+    # extra noise, outside the renewal equation. This noise isn't capturing variability in transmission
+    # the random walk does this. It adds some robustness when the case count is very small
+    infection_noise_scale = numpyro.sample(
+        "infection_noise_scale", dist.HalfNormal(0.5)
     )
-
-    infection_noise = jnp.repeat(
-        infection_noise_scale * jnp.cumsum(noisepoint_infection_noise, axis=-1),
-        r_walk_noise_scale_period,
-        axis=-1,
-    )[: data.nRs, : data.nDs]
+    # infection noise is now a normal
+    infection_noise = numpyro.sample(
+        "infection_noise", dist.Normal(loc=0, scale=jnp.ones((data.nRs, data.nDs)))
+    )
 
     # enforce positivity!
     infections = jax.nn.softplus(
