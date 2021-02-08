@@ -88,6 +88,14 @@ def run_model(
     info_dict["time_per_sample"] = time_per_sample
     info_dict["divergences"] = divergences
 
+    info_dict["sample"] = {}
+    info_dict["sample"]["num_steps"] = np.array(
+        mcmc.get_extra_fields()["num_steps"]
+    ).tolist()
+    info_dict["sample"]["mean_accept_prob"] = np.array(
+        mcmc.get_extra_fields()["mean_accept_prob"]
+    ).tolist()
+
     print(f"Sampling {num_samples} samples per chain took {end - start:.2f}s")
     print(f"There were {divergences} divergences.")
 

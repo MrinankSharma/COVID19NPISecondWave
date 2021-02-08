@@ -72,17 +72,16 @@ if __name__ == "__main__":
         )
     elif args.exp == 3:
         # default
-        # samples, info, mcmc = run_model(
-        #     candidate_model_v7_alt_conv,
-        #     data,
-        #     ep,
-        #     num_samples=args.num_samples,
-        #     num_warmup=args.num_warmup,
-        #     num_chains=args.num_chains,
-        #     max_tree_depth=args.max_treedepth,
-        #     save_yaml=True,
-        # )
-        pass
+        samples, info, mcmc = run_model(
+            candidate_model_v7_alt_conv,
+            data,
+            ep,
+            num_samples=args.num_samples,
+            num_warmup=args.num_warmup,
+            num_chains=args.num_chains,
+            max_tree_depth=args.max_treedepth,
+            save_yaml=True,
+        )
     elif args.exp == 4:
         # default
         samples, info, mcmc = run_model(
