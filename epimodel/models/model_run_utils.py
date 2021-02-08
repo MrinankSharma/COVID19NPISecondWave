@@ -111,7 +111,7 @@ def run_model(
         "max": float(np.max(all_ess)),
     }
     print(
-        f"Mean ESS: {info_dict['ess']['med']:.2f} [{info_dict['ess']['2.5']:.2f} ... {info_dict['ess']['97.5']:.2f}]"
+        f"Mean ESS: {info_dict['ess']['med']:.2f} [{info_dict['ess']['lower']:.2f} ... {info_dict['ess']['upper']:.2f}]"
     )
 
     if num_chains > 1:
@@ -131,7 +131,7 @@ def run_model(
         }
 
         print(
-            f"Rhat: {info_dict['rhat']['med']:.2f} [{info_dict['rhat']['2.5']:.2f} ... {info_dict['rhat']['97.5']:.2f}]"
+            f"Rhat: {info_dict['rhat']['med']:.2f} [{info_dict['rhat']['lower']:.2f} ... {info_dict['rhat']['upper']:.2f}]"
         )
 
     if save_results:
