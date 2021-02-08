@@ -23,6 +23,7 @@ def run_model(
     model_kwargs=None,
     save_yaml=False,
 ):
+    numpyro.set_host_device_count(num_chains)
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
     )
@@ -122,25 +123,25 @@ def run_model(
         f"Mean ESS: {info_dict['ess']['med']:.2f} [{info_dict['ess']['lower']:.2f} ... {info_dict['ess']['upper']:.2f}]"
     )
 
-    if num_chains > 1:
-        all_rhat = np.array([])
-        for k in grouped_posterior_samples.keys():
-            rhat = numpyro.diagnostics.gelman_rubin(
-                np.asarray(grouped_posterior_samples[k])
-            )
-            all_rhat = np.append(all_rhat, rhat)
-
-        info_dict["rhat"] = {
-            "med": float(np.percentile(all_rhat, 50)),
-            "lower": float(np.percentile(all_rhat, 97.5)),
-            "upper": float(np.percentile(all_rhat, 2.5)),
-            "min": float(np.max(all_rhat)),
-            "max": float(np.min(all_rhat)),
-        }
-
-        print(
-            f"Rhat: {info_dict['rhat']['med']:.2f} [{info_dict['rhat']['lower']:.2f} ... {info_dict['rhat']['upper']:.2f}]"
-        )
+    # if num_chains > 1:
+    #     all_rhat = np.array([])
+    #     for k in grouped_posterior_samples.keys():
+    #         rhat = numpyro.diagnostics.gelman_rubin(
+    #             np.asarray(grouped_posterior_samples[k])
+    #         )
+    #         all_rhat = np.append(all_rhat, rhat)
+    #
+    #     info_dict["rhat"] = {
+    #         "med": float(np.percentile(all_rhat, 50)),
+    #         "lower": float(np.percentile(all_rhat, 97.5)),
+    #         "upper": float(np.percentile(all_rhat, 2.5)),
+    #         "min": float(np.max(all_rhat)),
+    #         "max": float(np.min(all_rhat)),
+    #     }
+    #
+    #     print(
+    #         f"Rhat: {info_dict['rhat']['med']:.2f} [{info_dict['rhat']['lower']:.2f} ... {info_dict['rhat']['upper']:.2f}]"
+    #     )
 
     if save_results:
         print("Saving .netcdf")
