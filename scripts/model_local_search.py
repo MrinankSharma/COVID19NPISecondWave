@@ -39,7 +39,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 1:
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 2:
@@ -67,7 +67,19 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
+            save_yaml=True,
+        )
+    elif args.exp == 3:
+        # default
+        samples, info, mcmc = run_model(
+            candidate_model_v7_alt_conv,
+            data,
+            ep,
+            num_samples=args.num_samples,
+            num_warmup=args.num_warmup,
+            num_chains=args.num_chains,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 4:
@@ -79,7 +91,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 5:
@@ -91,7 +103,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 6:
@@ -103,7 +115,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 7:
@@ -115,7 +127,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 8:
@@ -127,7 +139,7 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
     elif args.exp == 9:
@@ -139,18 +151,6 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             num_warmup=args.num_warmup,
             num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
-            save_yaml=True,
-        )
-    elif args.exp == 10:
-        # default
-        samples, info, mcmc = run_model(
-            candidate_model_v7_alt_conv,
-            data,
-            ep,
-            num_samples=args.num_samples,
-            num_warmup=args.num_warmup,
-            num_chains=args.num_chains,
-            max_tree_depth=args.max_treepdepth,
+            max_tree_depth=args.max_treedepth,
             save_yaml=True,
         )
