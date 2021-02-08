@@ -82,6 +82,7 @@ if __name__ == "__main__":
         #     max_tree_depth=args.max_treedepth,
         #     save_yaml=True,
         # )
+        pass
     elif args.exp == 4:
         # default
         samples, info, mcmc = run_model(
