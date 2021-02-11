@@ -69,6 +69,8 @@ def run_model(
         mcmc.get_extra_fields()["mean_accept_prob"]
     ).tolist()
 
+    warmup_samples = mcmc.get_samples()
+
     print("Sample")
     mcmc.run(
         rng_key,
@@ -162,4 +164,4 @@ def run_model(
         except Exception as e:
             print(e)
 
-    return posterior_samples, info_dict, mcmc
+    return posterior_samples, warmup_samples, info_dict, mcmc
