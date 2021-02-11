@@ -33,7 +33,7 @@ def set_all_household_limits(active_CMs):
 
 
 def preprocess_data(
-    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=14, skipdeaths=30
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30
 ):
     """
     Process data, return PreprocessedData() object
@@ -88,8 +88,6 @@ def preprocess_data(
 
         for cm_i, cm in enumerate(CMs):
             active_cms[r_i, cm_i, :] = r_df[cm]
-    # set household limits to at least as strong as gathering limits
-    active_cms = set_all_household_limits(active_cms)
 
     # mask days where there are negative cases or deaths - because this
     # is clearly wrong
