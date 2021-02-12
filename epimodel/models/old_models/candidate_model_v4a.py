@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
+from epimodel.models.model_utils import (
     create_basic_R_prior,
     create_intervention_prior,
     create_noisescale_prior,
@@ -21,7 +21,7 @@ What have I done here:
 """
 
 
-def intervention_model(
+def candidate_model(
     data,
     ep,
     intervention_prior=None,
@@ -42,12 +42,9 @@ def intervention_model(
     # no more partial pooling
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
-    basic_R_variability = numpyro.sample("basic_R_variability", dist.HalfNormal(0.25))
-    basic_R_noise = numpyro.sample(
-        "basic_R_noise", dist.Normal(loc=0, scale=jnp.ones(data.nRs))
-    )
-    basic_R = jnp.clip(
-        basic_R_noise * basic_R_variability + 1.1, a_min=1e-3, a_max=None
+    basic_R = numpyro.sample(
+        "basic_R",
+        dist.TruncatedNormal(low=0.1, loc=1.1 * jnp.ones(data.nRs), scale=0.3),
     )
 
     # number of 'noise points'
@@ -63,7 +60,7 @@ def intervention_model(
     )
 
     log_Rt_noise = jnp.repeat(
-        r_walk_noise_scale * noisepoint_log_Rt_noise_series,
+        jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
@@ -123,8 +120,8 @@ def intervention_model(
     )
 
     # enforce positivity!
-    infections = jnp.clip(
-        infections + (infection_noise_scale * infection_noise.T), a_min=0, a_max=None
+    infections = jax.nn.softplus(
+        infections + (infection_noise_scale * infection_noise.T)
     )
 
     total_infections = jax.ops.index_update(

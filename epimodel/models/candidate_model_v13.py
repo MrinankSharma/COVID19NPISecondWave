@@ -2,87 +2,66 @@ import jax
 import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
+import jax.scipy.signal
 
-from .model_utils import (
-    create_basic_R_prior,
-    create_intervention_prior,
-    create_noisescale_prior,
-    create_partial_pooling_prior,
-    get_output_delay_transition,
-)
+from epimodel.distributions.asymmetric_laplace import AsymmetricLaplace
 
 
-"""
-What have I done here:
-* added pooling
-* clips instead
-
-"""
-
-
-def candidate_model_v5c(
-    data,
-    ep,
-    intervention_prior=None,
-    partial_pooling_prior=None,
-    r_walk_noisescale_prior=None,
-    ifr_noisescale_prior=None,
-    iar_noisescale_prior=None,
-    basic_r_prior=None,
-    r_walk_noise_scale_period=7,
-    ir_walk_noise_scale_period=14,
-    **kwargs
+def candidate_model_v13(
+    data, ep, r_walk_noise_scale_period=7, ir_walk_noise_scale_period=14, **kwargs
 ):
-    # partial pool over countries now. i.e., share effects across countries!
-    alpha_i = create_intervention_prior(
-        data.nCMs, {"type": "asymmetric_laplace", "scale": 40, "asymmetry": 0.5}
+    alpha_i = numpyro.sample(
+        "alpha_i",
+        AsymmetricLaplace(asymmetry=0.5 * jnp.ones(data.nCMs), scale=40),
     )
 
     # no more partial pooling
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
-
     basic_R = numpyro.sample(
         "basic_R",
-        dist.TruncatedNormal(low=0.1, loc=1.1 * jnp.ones(data.nRs), scale=0.3),
+        dist.TruncatedNormal(low=0.1, loc=1.1, scale=0.3 * jnp.ones(data.nRs)),
     )
 
     # number of 'noise points'
-    # -1 since first 2 weeks, no change.
-    nNP = int(data.nDs / r_walk_noise_scale_period) - 1
+    # -2 since no change for the first 3 weeks.
+    nNP = int(data.nDs / r_walk_noise_scale_period) - 2
 
-    noisepoint_log_Rt_noise_series = numpyro.sample(
-        "noisepoint_log_Rt_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+    r_walk_noise_scale = numpyro.sample(
+        "r_walk_noise_scale", dist.HalfNormal(scale=0.15)
     )
 
-    r_walk_noise_scale = create_noisescale_prior(
-        "r_walk_noise_scale", {"type": "half_normal", "scale": 0.15}, type="r_walk"
+    # rescaling for efficiency
+    noisepoint_log_Rt_noise_series = numpyro.sample(
+        "noisepoint_log_Rt_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nRs, nNP)), scale=1.0 / 10),
     )
 
     log_Rt_noise = jnp.repeat(
-        jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
+        r_walk_noise_scale * 10.0 * jnp.cumsum(noisepoint_log_Rt_noise_series, axis=-1),
         r_walk_noise_scale_period,
         axis=-1,
-    )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
-    full_log_Rt_noise = jnp.zeros_like(cm_reduction)
+    )[: data.nRs, : (data.nDs - 3 * r_walk_noise_scale_period)]
+    full_log_Rt_noise = jnp.zeros((data.nRs, data.nDs))
     full_log_Rt_noise = jax.ops.index_update(
         full_log_Rt_noise,
-        jax.ops.index[:, 2 * r_walk_noise_scale_period :],
+        jax.ops.index[:, 3 * r_walk_noise_scale_period :],
         log_Rt_noise,
     )
 
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + full_log_Rt_noise
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) + full_log_Rt_noise - cm_reduction
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
     Rt_walk = numpyro.deterministic("Rt_walk", jnp.exp(full_log_Rt_noise))
 
     seeding_padding = 7
     total_padding = ep.GIv.size - 1
 
-    seeding = numpyro.sample("seeding", dist.LogNormal(jnp.zeros((data.nRs, 1)), 5.0))
+    # note; seeding is also rescaled
+    seeding = numpyro.sample("seeding", dist.LogNormal(jnp.zeros((data.nRs, 1)), 1.0))
     init_infections = jnp.zeros((data.nRs, total_padding))
     init_infections = jax.ops.index_add(
         init_infections,
         jax.ops.index[:, -seeding_padding:],
-        jnp.repeat(seeding, seeding_padding, axis=-1),
+        jnp.repeat(seeding ** 3.0, seeding_padding, axis=-1),
     )
 
     total_infections = jnp.zeros((data.nRs, seeding_padding + data.nDs))
@@ -115,12 +94,13 @@ def candidate_model_v5c(
     )
     # infection noise is now a normal
     infection_noise = numpyro.sample(
-        "infection_noise", dist.Normal(loc=0, scale=jnp.ones((data.nRs, data.nDs)))
+        "infection_noise",
+        dist.Normal(loc=0, scale=0.1 * jnp.ones((data.nRs, data.nDs))),
     )
 
     # enforce positivity!
     infections = jax.nn.softplus(
-        infections + (infection_noise_scale * infection_noise.T)
+        infections + (infection_noise_scale * (10.0 * infection_noise.T))
     )
 
     total_infections = jax.ops.index_update(
@@ -141,29 +121,26 @@ def candidate_model_v5c(
     )
 
     # number of "noisepoints" for these walks
-    nNP = int(data.nDs + seeding_padding / ir_walk_noise_scale_period) - 2
+    nNP = int((data.nDs + seeding_padding) / ir_walk_noise_scale_period) - 1
 
-    iar_noise_scale = create_noisescale_prior(
-        "iar_noise_scale", iar_noisescale_prior, type="ifr/iar"
-    )
-    ifr_noise_scale = create_noisescale_prior(
-        "ifr_noise_scale", ifr_noisescale_prior, type="ifr/iar"
-    )
+    iar_noise_scale = numpyro.sample("iar_noise_scale", dist.HalfNormal(scale=0.01))
 
     noisepoint_log_iar_noise_series = numpyro.sample(
-        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_iar_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale),
     )
     noisepoint_log_ifr_noise_series = numpyro.sample(
-        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_ifr_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale),
     )
 
     iar_noise = jnp.repeat(
-        iar_noise_scale * jnp.cumsum(noisepoint_log_iar_noise_series, axis=-1),
+        jnp.cumsum(noisepoint_log_iar_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
+        jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
@@ -188,7 +165,24 @@ def candidate_model_v5c(
         "future_cases_t", jnp.multiply(total_infections, data.RC_mat @ ifr_t)
     )
 
-    output_delay_transition = get_output_delay_transition(seeding_padding, data)
+    def output_delay_transition(loop_carry, scan_slice):
+        # this scan function scans over local areas, using their country specific delay, rather than over days
+        # we don't need a loop carry, so we just return 0 and ignore the loop carry!
+        (
+            future_cases,
+            future_deaths,
+            country_cases_delay,
+            country_deaths_delay,
+        ) = scan_slice
+        expected_cases = jax.scipy.signal.convolve(
+            future_cases, country_cases_delay, mode="full"
+        )[seeding_padding : data.nDs + seeding_padding]
+        expected_deaths = jax.scipy.signal.convolve(
+            future_deaths, country_deaths_delay, mode="full"
+        )[seeding_padding : data.nDs + seeding_padding]
+
+        return 0.0, (expected_cases, expected_deaths)
+
     region_cases_delays, region_deaths_delays = ep.get_region_delays()
 
     _, (expected_cases, expected_deaths) = jax.lax.scan(

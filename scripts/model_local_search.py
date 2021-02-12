@@ -3,7 +3,7 @@ import sys, os
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
-from epimodel.models.candidate_model_v7_all import *
+from epimodel.models.old_models.candidate_model_v7_all import *
 
 import argparse
 

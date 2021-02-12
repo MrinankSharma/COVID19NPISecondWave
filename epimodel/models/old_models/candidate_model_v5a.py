@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
+from epimodel.models.model_utils import (
     create_basic_R_prior,
     create_intervention_prior,
     create_noisescale_prior,
@@ -14,14 +14,13 @@ from .model_utils import (
 
 """
 What have I done here:
-* removed pooling
-* removed variability hyperprior
-* increased random walk width
-* increased prior width
+* added pooling
+* clips instead
+
 """
 
 
-def rw_model(
+def candidate_model_v5a(
     data,
     ep,
     intervention_prior=None,
@@ -34,6 +33,14 @@ def rw_model(
     ir_walk_noise_scale_period=14,
     **kwargs
 ):
+    # partial pool over countries now. i.e., share effects across countries!
+    alpha_i = create_intervention_prior(
+        data.nCMs, {"type": "asymmetric_laplace", "scale": 40, "asymmetry": 0.5}
+    )
+
+    # no more partial pooling
+    cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
+
     basic_R_variability = numpyro.sample("basic_R_variability", dist.HalfNormal(0.25))
     basic_R_noise = numpyro.sample(
         "basic_R_noise", dist.Normal(loc=0, scale=jnp.ones(data.nRs))
@@ -59,14 +66,14 @@ def rw_model(
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
-    full_log_Rt_noise = jnp.zeros((data.nRs, data.nDs))
+    full_log_Rt_noise = jnp.zeros_like(cm_reduction)
     full_log_Rt_noise = jax.ops.index_update(
         full_log_Rt_noise,
         jax.ops.index[:, 2 * r_walk_noise_scale_period :],
         log_Rt_noise,
     )
 
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) + full_log_Rt_noise
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + full_log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
     Rt_walk = numpyro.deterministic("Rt_walk", jnp.exp(full_log_Rt_noise))
 

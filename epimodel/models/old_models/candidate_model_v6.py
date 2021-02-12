@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
+from epimodel.models.model_utils import (
     create_basic_R_prior,
     create_intervention_prior,
     create_noisescale_prior,
@@ -14,14 +14,13 @@ from .model_utils import (
 
 """
 What have I done here:
-* removed pooling
-* removed variability hyperprior
-* increased random walk width
-* increased prior width
+* added pooling
+* clips instead
+
 """
 
 
-def candidate_model(
+def candidate_model_v6(
     data,
     ep,
     intervention_prior=None,
@@ -42,25 +41,29 @@ def candidate_model(
     # no more partial pooling
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
-    basic_R = numpyro.sample(
-        "basic_R",
-        dist.TruncatedNormal(low=0.1, loc=1.1 * jnp.ones(data.nRs), scale=0.3),
+    basic_R_variability = numpyro.sample("basic_R_variability", dist.HalfNormal(0.25))
+    basic_R_noise = numpyro.sample(
+        "basic_R_noise", dist.Normal(loc=0, scale=jnp.ones(data.nRs))
+    )
+    basic_R = jnp.clip(
+        basic_R_noise * basic_R_variability + 1.1, a_min=1e-3, a_max=None
     )
 
     # number of 'noise points'
     # -1 since first 2 weeks, no change.
     nNP = int(data.nDs / r_walk_noise_scale_period) - 1
 
-    noisepoint_log_Rt_noise_series = numpyro.sample(
-        "noisepoint_log_Rt_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
-    )
-
     r_walk_noise_scale = create_noisescale_prior(
         "r_walk_noise_scale", {"type": "half_normal", "scale": 0.15}, type="r_walk"
     )
 
+    noisepoint_log_Rt_noise_series = numpyro.sample(
+        "noisepoint_log_Rt_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nRs, nNP)), scale=r_walk_noise_scale),
+    )
+
     log_Rt_noise = jnp.repeat(
-        jnp.cumsum(r_walk_noise_scale * noisepoint_log_Rt_noise_series, axis=-1),
+        jnp.cumsum(noisepoint_log_Rt_noise_series, axis=-1),
         r_walk_noise_scale_period,
         axis=-1,
     )[: data.nRs, : (data.nDs - 2 * r_walk_noise_scale_period)]
@@ -147,15 +150,12 @@ def candidate_model(
     iar_noise_scale = create_noisescale_prior(
         "iar_noise_scale", iar_noisescale_prior, type="ifr/iar"
     )
-    ifr_noise_scale = create_noisescale_prior(
-        "ifr_noise_scale", ifr_noisescale_prior, type="ifr/iar"
-    )
 
     noisepoint_log_iar_noise_series = numpyro.sample(
-        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)))
     )
     noisepoint_log_ifr_noise_series = numpyro.sample(
-        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nRs, nNP)))
+        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)))
     )
 
     iar_noise = jnp.repeat(
@@ -164,7 +164,7 @@ def candidate_model(
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
     ifr_noise = jnp.repeat(
-        ifr_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
+        iar_noise_scale * jnp.cumsum(noisepoint_log_ifr_noise_series, axis=-1),
         ir_walk_noise_scale_period,
         axis=-1,
     )[: data.nCs, : data.nDs + seeding_padding - (2 * ir_walk_noise_scale_period)]
