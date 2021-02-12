@@ -8,12 +8,12 @@ import os
 import numpy as np
 import yaml
 
-import epimodel.models.candidate_model_v5a
+import epimodel.models.old_models.candidate_model_v5a
 
 
 def get_model_func_from_str(model_type_str):
     if model_type_str == "candidate":
-        return epimodel.models.candidate_model_v5a
+        return epimodel.models.old_models.candidate_model_v5a
 
 
 def get_target_accept_from_model_str(model_type_str):
