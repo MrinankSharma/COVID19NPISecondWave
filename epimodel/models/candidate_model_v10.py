@@ -255,9 +255,7 @@ def candidate_model_v10_reparam(
     basic_R_noise = numpyro.sample(
         "basic_R_noise", dist.Normal(loc=jnp.zeros(data.nRs), scale=1.0)
     )
-    basic_R = numpyro.deterministic(
-        "basic_R", jax.nn.relu(1.1 + (basic_R_noise * 0.3))
-    )
+    basic_R = numpyro.deterministic("basic_R", jax.nn.relu(1.1 + (basic_R_noise * 0.3)))
 
     # number of 'noise points'
     # -1 since first 2 weeks, no change.

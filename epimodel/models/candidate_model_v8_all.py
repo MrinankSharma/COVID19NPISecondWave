@@ -463,6 +463,7 @@ def candidate_model_v8_ifr_reparam(
             obs=data.new_deaths.data,
         )
 
+
 def candidate_model_v8_ifr_reparam_w_npis(
     data,
     ep,
