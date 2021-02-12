@@ -179,11 +179,11 @@ class PreprocessedData(object):
             "Secondary Schools Closed",
             "Universities Away",
         ]
-        mask_npi = ["Mandatory Mask Wearing"]
+        mask_npi = "Mandatory Mask Wearing"
 
         nCMs = (
             len(binary_npis)
-            + len(mask_thresholds) * mask_npi
+            + len(mask_thresholds)
             + len(gathering_npis) * len(gathering_thresholds)
         )
 
