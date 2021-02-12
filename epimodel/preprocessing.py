@@ -162,50 +162,64 @@ class PreprocessedData(object):
     def featurize(self):
         # everything is hardcoded for now
         gathering_thresholds = [6, 30]
-        household_thresholds = [2, 5]
         mask_thresholds = [3, 4]
 
-        bin_cms = self.active_cms[:, 9:, :]
-        bin_cm_names = self.CMs[9:]
-
-        mask_cms = np.zeros((self.nRs, len(mask_thresholds), self.nDs))
-        mask_cm_names = []
-        gathering_cms = np.zeros((self.nRs, 4 * len(gathering_thresholds), self.nDs))
-        gathering_cm_names = []
-        household_cms = np.zeros((self.nRs, 4 * len(household_thresholds), self.nDs))
-        household_cm_names = []
-
-        for i in range(4):
-            s_i = i * len(gathering_thresholds)
-            for t_i, t in enumerate(gathering_thresholds):
-                gathering_cms[:, s_i + t_i, :] = np.logical_and(
-                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
-                )
-                gathering_cm_names.append(f"{self.CMs[i]}ed to {t}")
-
-        for h_npi_i, i in enumerate(range(4, 8)):
-            s_i = h_npi_i * len(household_thresholds)
-            for t_i, t in enumerate(household_thresholds):
-                household_cms[:, s_i + t_i, :] = np.logical_and(
-                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
-                )
-                household_cm_names.append(f"{self.CMs[i]}ed to {t}")
-
-        for mask_npi_i, t in enumerate(mask_thresholds):
-            mask_cms[:, mask_npi_i, :] = self.active_cms[:, 8, :] > t
-            mask_cm_names.append(f"Masks Level {t}")
-
-        all_cm_names = [
-            *bin_cm_names,
-            *gathering_cm_names,
-            *household_cm_names,
-            *mask_cm_names,
+        gathering_npis = [
+            "Public Indoor Gathering Person Limit",
+            "Private Indoor Gathering Person Limit",
         ]
-        all_activecms = np.concatenate(
-            [bin_cms, gathering_cms, household_cms, mask_cms], axis=1
+        binary_npis = [
+            "Some Face-to-Face Businesses Closed",
+            "Gastronomy Closed",
+            "Leisure Venues Closed",
+            "All Face-to-Face Businesses Closed",
+            "Curfew",
+            "Childcare Closed",
+            "Primary Schools Closed",
+            "Secondary Schools Closed",
+            "Universities Away",
+        ]
+        mask_npi = ["Mandatory Mask Wearing"]
+
+        nCMs = (
+            len(binary_npis)
+            + len(mask_thresholds) * mask_npi
+            + len(gathering_npis) * len(gathering_thresholds)
         )
-        self.CMs = all_cm_names
-        self.active_cms = all_activecms
+
+        nRs, _, nDs = self.active_cms.shape
+
+        new_active_cms = np.zeros((nRs, nCMs, nDs))
+
+        cm_index = 0
+        cm_names = []
+        for bin_npi in binary_npis:
+            old_index = self.CMs.index(bin_npi)
+            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :]
+            cm_index += 1
+            cm_names.append(bin_npi)
+
+        for gat_npi in gathering_npis:
+            for t in gathering_thresholds:
+                old_index = self.CMs.index(gat_npi)
+                new_active_cms[:, cm_index, :] = np.logical_and(
+                    self.active_cms[:, old_index, :] > 0,
+                    self.active_cms[:, old_index, :] < t,
+                )
+                cm_names.append(f"{gat_npi} < {t}")
+                cm_index += 1
+
+        for t in mask_thresholds:
+            old_index = self.CMs.index(mask_npi)
+            new_active_cms[:, cm_index, :] = np.logical_and(
+                self.active_cms[:, old_index, :] > 0,
+                self.active_cms[:, old_index, :] < t,
+            )
+            cm_names.append(f"{mask_npi} < {t}")
+            cm_index += 1
+
+        self.CMs = cm_names
+        self.active_cms = new_active_cms
 
     def mask_region_by_index(self, region_index, nz_case_days_shown=60):
         mask_start = np.nonzero(

@@ -115,7 +115,9 @@ def candidate_model_v11(
 
     # country level random walks for IFR/IAR changes. Note: country level, **not** area level.
     iar_0 = 1.0
-    ifr_0_tilde = numpyro.sample("ifr_0_tilde", dist.Normal(loc=jnp.zeros((data.nCs, 1))))
+    ifr_0_tilde = numpyro.sample(
+        "ifr_0_tilde", dist.Normal(loc=jnp.zeros((data.nCs, 1)))
+    )
     ifr_0 = numpyro.deterministic("ifr_0", jax.nn.relu((ifr_0_tilde * 0.001) + 0.15))
 
     # number of "noisepoints" for these walks
@@ -125,11 +127,11 @@ def candidate_model_v11(
 
     noisepoint_log_iar_noise_series = numpyro.sample(
         "noisepoint_log_iar_noise_series",
-        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=1.),
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=1.0),
     )
     noisepoint_log_ifr_noise_series = numpyro.sample(
         "noisepoint_log_ifr_noise_series",
-        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=1.),
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=1.0),
     )
 
     iar_noise = jnp.repeat(

@@ -26,7 +26,9 @@ def candidate_model_v9(
     # no more partial pooling
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
-    basic_R_noise = numpyro.sample("basic_R_noise", dist.Normal(loc=jnp.zeros(data.nRs), scale=1))
+    basic_R_noise = numpyro.sample(
+        "basic_R_noise", dist.Normal(loc=jnp.zeros(data.nRs), scale=1)
+    )
     basic_R = numpyro.deterministic("basic_R", jax.nn.relu(1.1 + (basic_R_noise * 0.3)))
 
     # number of 'noise points'
@@ -128,7 +130,7 @@ def candidate_model_v9(
     # country level random walks for IFR/IAR changes. Note: country level, **not** area level.
     iar_0 = 1.0
     ifr_0 = numpyro.sample(
-        "ifr_0", dist.TruncatedNormal(low=1e-3, loc=0.2*jnp.ones((data.nCs, 1)))
+        "ifr_0", dist.TruncatedNormal(low=1e-3, loc=0.2 * jnp.ones((data.nCs, 1)))
     )
 
     # number of "noisepoints" for these walks
@@ -263,8 +265,12 @@ def candidate_model_alt_seeding(
     # no more partial pooling
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
-    basic_R_noise = numpyro.sample("basic_R_noise", dist.Normal(loc=jnp.zeros(data.nRs), scale=1))
-    basic_R = numpyro.deterministic("basic_R", jax.nn.softplus(1.1 + (basic_R_noise * 0.3)))
+    basic_R_noise = numpyro.sample(
+        "basic_R_noise", dist.Normal(loc=jnp.zeros(data.nRs), scale=1)
+    )
+    basic_R = numpyro.deterministic(
+        "basic_R", jax.nn.softplus(1.1 + (basic_R_noise * 0.3))
+    )
 
     # number of 'noise points'
     # -1 since first 2 weeks, no change.
@@ -483,6 +489,7 @@ def candidate_model_alt_seeding(
             obs=data.new_deaths.data,
         )
 
+
 def candidate_model_v8_base(
     data,
     ep,
@@ -608,10 +615,12 @@ def candidate_model_v8_base(
     )
 
     noisepoint_log_iar_noise_series = numpyro.sample(
-        "noisepoint_log_iar_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale)
+        "noisepoint_log_iar_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale),
     )
     noisepoint_log_ifr_noise_series = numpyro.sample(
-        "noisepoint_log_ifr_noise_series", dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale)
+        "noisepoint_log_ifr_noise_series",
+        dist.Normal(loc=jnp.zeros((data.nCs, nNP)), scale=iar_noise_scale),
     )
 
     iar_noise = jnp.repeat(
