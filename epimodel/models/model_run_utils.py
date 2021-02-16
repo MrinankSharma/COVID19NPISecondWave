@@ -49,6 +49,8 @@ def run_model(
     if model_kwargs is None:
         model_kwargs = {}
 
+    info_dict["model_kwargs"] = model_kwargs
+
     # also collect some extra information for better diagonstics!
     print("Warmup")
     mcmc.warmup(
