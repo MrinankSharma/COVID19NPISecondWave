@@ -809,20 +809,16 @@ def candidate_model_v14_fixed_ir(
     total_infections = numpyro.deterministic("total_infections", total_infections)
 
     # country level random walks for IFR/IAR changes. Note: country level, **not** area level.
-    iar_0 = 1.0
     ifr_0 = numpyro.sample(
-        "ifr_0", dist.Uniform(low=1e-3, high=jnp.ones((data.nCs, 1)))
+        "ifr_0", dist.Uniform(low=1e-3, high=jnp.ones((data.nRs, 1)))
     )
-
-    iar_t = numpyro.deterministic("iar_t", iar_0)
-    ifr_t = numpyro.deterministic("ifr_t", ifr_0)
 
     # use the `RC_mat` to pull the country level change in the rates for the relevant local area
     future_cases_t = numpyro.deterministic(
-        "future_cases_t", jnp.multiply(total_infections, data.RC_mat @ iar_t)
+        "future_cases_t", total_infections
     )
     future_deaths_t = numpyro.deterministic(
-        "future_cases_t", jnp.multiply(total_infections, data.RC_mat @ ifr_t)
+        "future_cases_t", jnp.multiply(total_infections, ifr_0)
     )
 
     def output_delay_transition(loop_carry, scan_slice):

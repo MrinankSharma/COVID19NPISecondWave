@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# for parallelism
+export XLA_FLAGS="--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=1"
 for i in 0 1 2 3 4 5 6 7 8
 do
    echo "Running Experiment $i"
