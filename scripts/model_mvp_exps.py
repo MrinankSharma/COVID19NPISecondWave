@@ -1,8 +1,10 @@
 import sys, os
 
+os.environ["XLA_FLAGS"] = (
+    "--xla_cpu_multi_thread_eigen=false " "intra_op_parallelism_threads=1"
+)
 sys.path.append(os.getcwd())  # add current working directory to the path
 
-import numpyro
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.models.candidate_model_v14 import *
 
@@ -28,6 +30,8 @@ argparser.add_argument(
 )
 
 args = argparser.parse_args()
+import numpyro
+
 numpyro.set_host_device_count(args.num_chains)
 
 if __name__ == "__main__":
