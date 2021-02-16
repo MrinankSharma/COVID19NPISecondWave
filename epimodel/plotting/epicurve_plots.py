@@ -1,6 +1,10 @@
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+
 import numpy as np
+
+fp2 = FontProperties(fname=r"../../fonts/Font Awesome 5 Free-Solid-900.otf")
 
 
 def plot_area_transmission_curve(area_Rt_samples, Ds, title=None):
@@ -92,7 +96,7 @@ def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=No
     plt.yscale("log")
 
 
-def add_cms_to_plot(cm_names, active_cms, Ds):
+def add_cms_to_plot(cm_style, CMs, active_cms, Ds):
     plt.twinx()
     cm_diff = np.zeros_like(active_cms)
     cm_diff[:, 1:] = np.diff(active_cms)
@@ -106,16 +110,40 @@ def add_cms_to_plot(cm_names, active_cms, Ds):
             changes = np.nonzero(cm_diff[:, diff_date])[0]
             if len(changes > 0):
                 for change_i, cm_i in enumerate(changes):
-                    plt.text(
-                        Ds[diff_date],
-                        20 - change_i,
-                        cm_names[cm_i]
-                        if cm_diff[cm_i, diff_date] == 1
-                        else f"{cm_names[cm_i]} lifted",
-                        fontsize=4,
-                        ha="left" if diff_date_i % 2 == 1 else "right",
-                        rotation=45 if diff_date_i % 2 == 1 else -45,
-                    )
+                    style_dict = cm_style[CMs[cm_i]]
+                    enabled = cm_diff[cm_i, diff_date] == 1
+
+                    if enabled:
+                        plt.text(
+                            Ds[diff_date],
+                            19 - 1.5 * change_i,
+                            style_dict["icon"],
+                            fontsize=8,
+                            color=style_dict["color"],
+                            ha="center",
+                            va="center",
+                            fontproperties=fp2,
+                        )
+                    else:
+                        plt.text(
+                            Ds[diff_date],
+                            19 - 1.5 * change_i,
+                            style_dict["icon"],
+                            fontsize=8,
+                            color=style_dict["color"],
+                            ha="center",
+                            va="center",
+                            fontproperties=fp2,
+                        )
+                        if diff_date < len(Ds) - 2 and diff_date > 1:
+                            plt.plot(
+                                [
+                                    mdates.date2num(Ds[diff_date - 2]),
+                                    mdates.date2num(Ds[diff_date + 2]),
+                                ],
+                                [19 - 1.5 * change_i, 19 - 1.5 * change_i],
+                                color="tab:red",
+                            )
 
     plt.ylim([0, 20])
     plt.yticks([])
@@ -186,19 +214,16 @@ def plot_Rt_walk(Rt_walk, Ds, title=""):
     plt.title(title)
 
 
-def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
-    plt.figure(figsize=(6, 8), dpi=300)
+def plot_area_summary(posterior_samples, region_index, data, cm_style):
+    plt.figure(figsize=(8, 6), dpi=300)
 
-    plt.subplot(511)
+    plt.subplot(311)
     area_Rt_samples = posterior_samples["Rt"][:, region_index, :]
     area_active_cms = data.active_cms[region_index, :, :]
     plot_area_transmission_curve(area_Rt_samples, data.Ds)
-    if cm_names is None:
-        add_cms_to_plot(data.CMs, area_active_cms, data.Ds)
-    else:
-        add_cms_to_plot(cm_names, area_active_cms, data.Ds)
+    add_cms_to_plot(cm_style, data.CMs, area_active_cms, data.Ds)
 
-    plt.subplot(512)
+    plt.subplot(312)
     area_infections = posterior_samples["total_infections"][:, region_index, 7:]
     plot_area_infections_curve(area_infections, data.Ds)
     plt.twinx()
@@ -206,18 +231,12 @@ def plot_area_summary(posterior_samples, region_index, data, cm_names=None):
         posterior_samples["infection_noise"][:, region_index, :], data.Ds
     )
 
-    plt.subplot(513)
-    future_cases = posterior_samples["future_cases_t"][:, region_index, 7:]
-    plot_area_infections_curve(future_cases, data.Ds)
-    plt.ylabel("Future Cases")
-
-    plt.subplot(514)
+    plt.subplot(313)
     expected_cases = posterior_samples["expected_cases"][:, region_index, :]
     psi_cases = posterior_samples["psi_cases"]
     new_cases = data.new_cases[region_index, :]
     plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
-    plt.subplot(515)
     expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
     psi_deaths = posterior_samples["psi_deaths"]
     new_deaths = data.new_deaths[region_index, :]

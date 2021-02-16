@@ -204,7 +204,7 @@ class PreprocessedData(object):
                 old_index = self.CMs.index(gat_npi)
                 new_active_cms[:, cm_index, :] = np.logical_and(
                     self.active_cms[:, old_index, :] > 0,
-                    self.active_cms[:, old_index, :] < t,
+                    self.active_cms[:, old_index, :] < t + 1,
                 )
                 cm_names.append(f"{gat_npi} < {t}")
                 cm_index += 1
@@ -213,7 +213,7 @@ class PreprocessedData(object):
             old_index = self.CMs.index(mask_npi)
             new_active_cms[:, cm_index, :] = np.logical_and(
                 self.active_cms[:, old_index, :] > 0,
-                self.active_cms[:, old_index, :] < t,
+                self.active_cms[:, old_index, :] > t - 1,
             )
             cm_names.append(f"{mask_npi} < {t}")
             cm_index += 1
