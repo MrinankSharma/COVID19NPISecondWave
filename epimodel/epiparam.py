@@ -46,8 +46,8 @@ class EpidemiologicalParameters:
             self.generation_interval = generation_interval
         else:
             self.generation_interval = {
-                "mean": 5.06,
-                "sd": 2.11,
+                "mean": 4.83,
+                "sd": 1.73,
                 "dist": "gamma",
             }
 
