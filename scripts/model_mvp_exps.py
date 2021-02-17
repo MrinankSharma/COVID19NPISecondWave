@@ -1,9 +1,7 @@
 import sys, os
 
 os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=4 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "--intra_op_parallelism_threads=1"
+    "--xla_force_host_platform_device_count=4 " "--xla_cpu_multi_thread_eigen=false"
 )
 
 sys.path.append(os.getcwd())  # add current working directory to the path
