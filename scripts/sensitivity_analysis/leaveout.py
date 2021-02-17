@@ -21,10 +21,10 @@ if __name__ == "__main__":
     data.featurize()
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
-
     for rg in args.rgs:
-        data.mask_region_by_index(rg)
+        data.remove_region_by_index()
+
+    ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     model_extra_bd = load_model_config(args.model_config)
     pprint_mb_dict(model_extra_bd)
 
-    samples, summary, _ = run_model(
+    samples, summary = run_model(
         model_func,
         data,
         ep,
