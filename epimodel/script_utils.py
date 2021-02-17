@@ -8,12 +8,12 @@ import os
 import numpy as np
 import yaml
 
-import epimodel.models.old_models.candidate_model_v5a
+from epimodel.models.release_candidate_model_v1 import rc_model_1a
 
 
 def get_model_func_from_str(model_type_str):
     if model_type_str == "candidate":
-        return epimodel.models.old_models.candidate_model_v5a
+        return rc_model_1a()
 
 
 def get_target_accept_from_model_str(model_type_str):
@@ -23,7 +23,7 @@ def get_target_accept_from_model_str(model_type_str):
 
 def get_tree_depth_from_model_str(model_type_str):
     # default
-    return 0.8
+    return 20
 
 
 def add_argparse_arguments(argparse):
@@ -38,13 +38,16 @@ def add_argparse_arguments(argparse):
         "--exp_tag", dest="exp_tag", type=str, help="experiment identification tag"
     )
     argparse.add_argument(
-        "--n_chains",
-        dest="n_chains",
+        "--num_chains",
+        dest="num_chains",
         type=int,
         help="the number of chains to run in parallel",
     )
     argparse.add_argument(
-        "--n_samples", dest="n_samples", type=int, help="the number of samples to draw"
+        "--num_samples",
+        dest="num_samples",
+        type=int,
+        help="the number of samples to draw",
     )
 
     argparse.add_argument(

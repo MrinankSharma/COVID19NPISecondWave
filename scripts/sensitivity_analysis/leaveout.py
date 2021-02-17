@@ -1,62 +1,34 @@
-"""
-:code:`epiparam.py`
+import sys, os
 
-Specify the prior generation interval, case reporting and death delay distributions using command line parameters.
-"""
+sys.path.append(os.getcwd())  # add current working directory to the path
+
+from epimodel import EpidemiologicalParameters, run_model, preprocess_data
+from epimodel.script_utils import *
+
 import argparse
 from datetime import datetime
 
-from epimodel import EpidemiologicalParameters, preprocess_data, run_model
-from scripts.sensitivity_analysis.utils import *
-
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--gi_mean_mean",
-    dest="gi_mean_mean",
-    type=float,
-    help="Mean of the prior over generation interval means",
+    "--rgs", dest="rgs", type=int, help="Region indices to leave out", nargs="+"
 )
-argparser.add_argument(
-    "--gi_mean_sd",
-    dest="gi_mean_sd",
-    type=float,
-    help="Standard deviation of the prior over generation interval means",
-)
-argparser.add_argument(
-    "--deaths_mean_mean",
-    dest="deaths_mean_mean",
-    type=float,
-    help="Mean of the prior over infection-to-death delay means",
-)
-argparser.add_argument(
-    "--deaths_mean_sd",
-    dest="deaths_mean_sd",
-    type=float,
-    help="Standard deviation of the prior over infection-to-death delay means",
-)
-argparser.add_argument(
-    "--cases_mean_mean",
-    dest="cases_mean_mean",
-    type=float,
-    help="Mean of the prior over infection-to-reporting delay means",
-)
-argparser.add_argument(
-    "--cases_mean_sd",
-    dest="cases_mean_sd",
-    type=float,
-    help="Mean of the prior over infection-to-reporting delay means",
-)
-
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
 if __name__ == "__main__":
+    print("Loading Data")
     data = preprocess_data(get_data_path())
-
+    data.featurize()
+    print("Loading EpiParam")
     ep = EpidemiologicalParameters()
+    for rg in args.rgs:
+        data.remove_region_by_index()
+
+    ep.populate_region_delays(data)
+
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
-    td = get_tree_depth_from_model_str(args.model)
+    td = get_tree_depth_from_model_str(args.model_type)
 
     base_outpath = generate_base_output_dir(
         args.model_type, args.model_config, args.exp_tag
@@ -84,9 +56,9 @@ if __name__ == "__main__":
     summary["model_config"] = args.model_config
     summary["start_dt"] = ts_str
     summary["exp_tag"] = args.exp_tag
+    summary["rgs"] = args.rgs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
-
     summary = load_keys_from_samples(get_summary_save_keys(), samples, summary)
     with open(summary_output, "w") as f:
         yaml.dump(summary, f, sort_keys=True)

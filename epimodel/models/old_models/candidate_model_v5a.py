@@ -46,7 +46,7 @@ def candidate_model_v5a(
         "basic_R_noise", dist.Normal(loc=0, scale=jnp.ones(data.nRs))
     )
     basic_R = jnp.clip(
-        basic_R_noise * basic_R_variability + 1.1, a_min=1e-3, a_max=None
+        (basic_R_noise * basic_R_variability) + 1.1, a_min=1e-3, a_max=None
     )
 
     # number of 'noise points'
@@ -122,8 +122,8 @@ def candidate_model_v5a(
     )
 
     # enforce positivity!
-    infections = jnp.clip(
-        infections + (infection_noise_scale * infection_noise.T), a_min=0, a_max=None
+    infections = jax.nn.softplus(
+        infections + (infection_noise_scale * infection_noise.T)
     )
 
     total_infections = jax.ops.index_update(

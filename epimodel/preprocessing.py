@@ -227,7 +227,75 @@ class PreprocessedData(object):
             == nz_case_days_shown + 1
         )[0][0]
 
-        self.new_cases[region_index, mask_start:] = True
-        self.new_deaths.mask[region_index, mask_start:] = True
+        self.new_cases[region_index, mask_start:] = np.ma.masked
+        self.new_deaths[region_index, mask_start:] = np.ma.masked
 
         return mask_start
+
+    def featurize(self):
+        # everything is hardcoded for now
+        gathering_thresholds = [6, 30]
+        household_thresholds = [2, 5]
+        mask_thresholds = [3, 4]
+
+        bin_cms = self.active_cms[:, 9:, :]
+        bin_cm_names = self.CMs[9:]
+
+        mask_cms = np.zeros((self.nRs, len(mask_thresholds), self.nDs))
+        mask_cm_names = []
+        gathering_cms = np.zeros((self.nRs, 4 * len(gathering_thresholds), self.nDs))
+        gathering_cm_names = []
+        household_cms = np.zeros((self.nRs, 4 * len(household_thresholds), self.nDs))
+        household_cm_names = []
+
+        for i in range(4):
+            s_i = i * len(gathering_thresholds)
+            for t_i, t in enumerate(gathering_thresholds):
+                gathering_cms[:, s_i + t_i, :] = np.logical_and(
+                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
+                )
+                gathering_cm_names.append(f"{self.CMs[i]}ed to {t}")
+
+        for h_npi_i, i in enumerate(range(4, 8)):
+            s_i = h_npi_i * len(household_thresholds)
+            for t_i, t in enumerate(household_thresholds):
+                household_cms[:, s_i + t_i, :] = np.logical_and(
+                    self.active_cms[:, i, :] > 0, self.active_cms[:, i, :] < t
+                )
+                household_cm_names.append(f"{self.CMs[i]}ed to {t}")
+
+        for mask_npi_i, t in enumerate(mask_thresholds):
+            mask_cms[:, mask_npi_i, :] = self.active_cms[:, 8, :] > t
+            mask_cm_names.append(f"Masks Level {t}")
+
+        all_cm_names = [
+            *bin_cm_names,
+            *gathering_cm_names,
+            *household_cm_names,
+            *mask_cm_names,
+        ]
+        all_activecms = np.concatenate(
+            [bin_cms, gathering_cms, household_cms, mask_cms], axis=1
+        )
+        self.CMs = all_cm_names
+        self.active_cms = all_activecms
+
+    def remove_region_by_index(self, r_i):
+        del self.Rs[r_i]
+        del self.Cs[r_i]
+        self.new_cases = np.delete(self.new_cases, r_i, axis=0)
+        self.new_deaths = np.delete(self.new_deaths, r_i, axis=0)
+        self.active_cms = np.delete(self.active_cms, r_i, axis=0)
+
+        self.unique_Cs = sorted(list(set(self.Cs)))
+        C_indices = []
+        for uc in self.unique_Cs:
+            a_indices = np.nonzero([uc == c for c in self.Cs])[0]
+            C_indices.append(a_indices)
+
+        self.C_indices = C_indices
+
+        self.RC_mat = np.zeros((self.nRs, self.nCs))
+        for r_i, c in enumerate(self.Cs):
+            C_ind = self.unique_Cs.index(c)
+            self.RC_mat[r_i, C_ind] = 1
