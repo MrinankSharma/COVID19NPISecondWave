@@ -33,7 +33,7 @@ def set_all_household_limits(active_CMs):
 
 
 def preprocess_data(
-    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=8, skipdeaths=20
 ):
     """
     Process data, return PreprocessedData() object

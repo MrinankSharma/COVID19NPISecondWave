@@ -14,6 +14,7 @@ args = argparser.parse_args()
 if __name__ == "__main__":
     data = preprocess_data(get_data_path())
     data.featurize()
+
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
 
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     model_extra_bd = load_model_config(args.model_config)
     pprint_mb_dict(model_extra_bd)
 
-    samples, summary = run_model(
+    posterior_samples, warmup_samples, info_dict, mcmc = run_model(
         model_func,
         data,
         ep,
@@ -45,12 +46,15 @@ if __name__ == "__main__":
         model_kwargs=model_extra_bd,
         save_results=True,
         output_fname=full_output,
+        save_yaml=False,
     )
 
-    summary["model_config"] = args.model_config
-    summary["start_dt"] = ts_str
-    summary["exp_tag"] = args.exp_tag
-    summary["rgs"] = args.rgs
+    info_dict["model_config"] = args.model_config
+    info_dict["start_dt"] = ts_str
+    info_dict["exp_tag"] = args.exp_tag
+    info_dict["exp_config"] = {
+        "rgs": args.rgs
+    }
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(get_summary_save_keys(), samples, summary)
