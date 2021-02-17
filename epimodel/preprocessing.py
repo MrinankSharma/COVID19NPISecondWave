@@ -215,8 +215,8 @@ class PreprocessedData(object):
             == nz_case_days_shown + 1
         )[0][0]
 
-        self.new_cases[region_index, mask_start:] = True
-        self.new_deaths.mask[region_index, mask_start:] = True
+        self.new_cases[region_index, mask_start:] = np.ma.masked
+        self.new_deaths[region_index, mask_start:] = np.ma.masked
 
         return mask_start
 
@@ -267,3 +267,23 @@ class PreprocessedData(object):
         )
         self.CMs = all_cm_names
         self.active_cms = all_activecms
+
+    def remove_region_by_index(self, r_i):
+        del self.Rs[r_i]
+        del self.Cs[r_i]
+        self.new_cases = np.delete(self.new_cases, r_i, axis=0)
+        self.new_deaths = np.delete(self.new_deaths, r_i, axis=0)
+        self.active_cms = np.delete(self.active_cms, r_i, axis=0)
+
+        self.unique_Cs = sorted(list(set(self.Cs)))
+        C_indices = []
+        for uc in self.unique_Cs:
+            a_indices = np.nonzero([uc == c for c in self.Cs])[0]
+            C_indices.append(a_indices)
+
+        self.C_indices = C_indices
+
+        self.RC_mat = np.zeros((self.nRs, self.nCs))
+        for r_i, c in enumerate(self.Cs):
+            C_ind = self.unique_Cs.index(c)
+            self.RC_mat[r_i, C_ind] = 1

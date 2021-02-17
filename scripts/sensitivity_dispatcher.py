@@ -7,9 +7,10 @@ import yaml
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--max_processes",
-    dest="max_processes",
+    "--max_parallel_runs",
+    dest="max_parallel_runs",
     type=int,
+    default=1,
     help="Number of processes to spawn",
 )
 argparser.add_argument(
@@ -45,15 +46,15 @@ def run_types_to_commands(run_types, exp_options):
     for rt in run_types:
         exp_rt = exp_options[rt]
         experiment_file = exp_rt["experiment_file"]
-        n_chains = exp_rt["n_chains"]
-        n_samples = exp_rt["n_samples"]
+        num_chains = exp_rt["num_chains"]
+        num_samples = exp_rt["num_samples"]
         exp_tag = exp_rt["experiment_tag"]
         model_type = args.model_type
         model_config = args.model_config
 
         cmds = [
             f"python scripts/sensitivity_analysis/{experiment_file} --model_type {model_type}"
-            f" --n_samples {n_samples} --n_chains {n_chains} --exp_tag {exp_tag} --model_config {model_config}"
+            f" --num_samples {num_samples} --num_chains {num_chains} --exp_tag {exp_tag} --model_config {model_config}"
         ]
 
         for key, value in exp_rt["args"].items():
@@ -103,12 +104,11 @@ if __name__ == "__main__":
             print(c)
     else:
         processes = set()
-        max_processes = args.max_processes
 
         for command in commands:
             processes.add(subprocess.Popen(command, shell=True))
             time.sleep(10.0)
-            if len(processes) >= max_processes:
+            if len(processes) >= args.max_parallel_runs:
                 os.wait()
                 processes.difference_update(
                     [p for p in processes if p.poll() is not None]
