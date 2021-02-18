@@ -27,4 +27,4 @@ All files relating to Austria are prefixed with `at`. There are:
 # Czechia
 All files relating to the UK are prefixed with `cz`. We have:
 
-* `cz_cases_deaths.csv`. 
+* `cz_cases_deaths.csv`. https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19 (COVID-19: Overview of the epidemiological situation according to the reports of regional hygienic stations by district)
