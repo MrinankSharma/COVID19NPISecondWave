@@ -6,6 +6,7 @@ os.environ["XLA_FLAGS"] = (
     "intra_op_parallelism_threads=1"
 )
 
+
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
@@ -15,12 +16,7 @@ import argparse
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument(
-    "--infection_noise_scale",
-    dest="infection_noise_scale",
-    type=float,
-    help="Infection Noise Scale",
-)
+
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
@@ -50,8 +46,14 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
+    basic_R_prior = {
+        "mean": args.basic_R_mean,
+        "type": "trunc_normal",
+        "variability": args.basic_R_variability,
+    }
+
     model_build_dict = config["model_kwargs"]
-    model_build_dict["infection_noise_scale"] = args.infection_noise_scale
+    model_build_dict["basic_R_prior"] = basic_R_prior
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
@@ -74,7 +76,6 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"infection_noise_scale": args.infection_noise_scale}
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

@@ -35,6 +35,7 @@ argparser.add_argument(
     default="default",
     dest="model_config",
     type=str,
+    n_args="+",
     help="Model config used to override default params for **all** requested runs",
 )
 
@@ -43,40 +44,43 @@ args = argparser.parse_args()
 
 def run_types_to_commands(run_types, exp_options):
     commands = []
-    for rt in run_types:
-        exp_rt = exp_options[rt]
-        experiment_file = exp_rt["experiment_file"]
-        num_chains = exp_rt["num_chains"]
-        num_samples = exp_rt["num_samples"]
-        exp_tag = exp_rt["experiment_tag"]
-        model_type = args.model_type
+    configs = args.model_configs
+
+    for config in configs:
         model_config = args.model_config
+        for rt in run_types:
+            exp_rt = exp_options[rt]
+            experiment_file = exp_rt["experiment_file"]
+            num_chains = exp_rt["num_chains"]
+            num_samples = exp_rt["num_samples"]
+            exp_tag = exp_rt["experiment_tag"]
+            model_type = args.model_type
 
-        cmds = [
-            f"python scripts/sensitivity_analysis/{experiment_file} --model_type {model_type}"
-            f" --num_samples {num_samples} --num_chains {num_chains} --exp_tag {exp_tag} --model_config {model_config}"
-        ]
+            cmds = [
+                f"python scripts/sensitivity_analysis/{experiment_file} --model_type {model_type}"
+                f" --num_samples {num_samples} --num_chains {num_chains} --exp_tag {exp_tag} --model_config {model_config}"
+            ]
 
-        for key, value in exp_rt["args"].items():
-            new_cmds = []
-            if isinstance(value, list):
-                for c in cmds:
-                    for v in value:
-                        if isinstance(v, list):
-                            new_cmd = f"{c} --{key}"
-                            for v_nest in v:
-                                new_cmd = f"{new_cmd} {v_nest}"
-                            new_cmds.append(new_cmd)
-                        else:
-                            new_cmd = f"{c} --{key} {v}"
-                            new_cmds.append(new_cmd)
-            else:
-                for c in cmds:
-                    new_cmd = f"{c} --{key} {value}"
-                    new_cmds.append(new_cmd)
+            for key, value in exp_rt["args"].items():
+                new_cmds = []
+                if isinstance(value, list):
+                    for c in cmds:
+                        for v in value:
+                            if isinstance(v, list):
+                                new_cmd = f"{c} --{key}"
+                                for v_nest in v:
+                                    new_cmd = f"{new_cmd} {v_nest}"
+                                new_cmds.append(new_cmd)
+                            else:
+                                new_cmd = f"{c} --{key} {v}"
+                                new_cmds.append(new_cmd)
+                else:
+                    for c in cmds:
+                        new_cmd = f"{c} --{key} {value}"
+                        new_cmds.append(new_cmd)
 
-            cmds = new_cmds
-        commands.extend(cmds)
+                cmds = new_cmds
+            commands.extend(cmds)
 
     return commands
 

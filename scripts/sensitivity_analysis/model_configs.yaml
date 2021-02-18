@@ -13,3 +13,166 @@ alt_prior:
        type:  equals
      - query: Outdoor
        type: includes
+
+npi_set_1:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+
+npi_set_2:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+
+npi_set_3:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+
+npi_set_4:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+
+npi_set_5:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+     - query: Universities
+       type: includes
+
+npi_set_6:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+     - query: Universities
+       type: includes
+     - query: Some Face-to-Face
+       type: includes
+
+npi_set_7:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+     - query: Universities
+       type: includes
+     - query: Extra
+       type: includes
+
+npi_set_8:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+     - query: Universities
+       type: includes
+     - query: Extra
+       type: includes
+     - query: Curfew
+       type: includes
+
+npi_set_9:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+     - query: Stay at Home Order
+       type: equals
+     - query: Mask
+       type: includes
+     - query: Leisure
+       type: includes
+     - query: Childcare
+       type: includes
+     - query: Universities
+       type: includes
+     - query: Extra
+       type: includes
+     - query: Curfew
+       type: includes
+     - query: Gathering
+       type: includes
