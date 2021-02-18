@@ -35,7 +35,7 @@ argparser.add_argument(
     default="default",
     dest="model_config",
     type=str,
-    n_args="+",
+    nargs="+",
     help="Model config used to override default params for **all** requested runs",
 )
 
