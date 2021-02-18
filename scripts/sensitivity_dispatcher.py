@@ -44,7 +44,7 @@ args = argparser.parse_args()
 
 def run_types_to_commands(run_types, exp_options):
     commands = []
-    configs = args.model_configs
+    configs = args.model_config
 
     for config in configs:
         model_config = args.model_config
