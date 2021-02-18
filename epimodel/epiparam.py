@@ -85,6 +85,11 @@ class EpidemiologicalParameters:
                     "disp": 14.26,
                     "dist": "negbinom",
                 },
+                "Netherlands": {
+                    "mean": 21.82,
+                    "disp": 14.26,
+                    "dist": "negbinom",
+                },
             }
 
         if infection_to_reporting_delays is not None:
@@ -117,6 +122,11 @@ class EpidemiologicalParameters:
                     "dist": "negbinom",
                 },
                 "Switzerland": {
+                    "mean": 10.93,
+                    "disp": 5.41,
+                    "dist": "negbinom",
+                },
+                "Netherlands": {
                     "mean": 10.93,
                     "disp": 5.41,
                     "dist": "negbinom",

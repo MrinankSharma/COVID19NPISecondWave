@@ -189,6 +189,7 @@ class PreprocessedData(object):
         public_gathering_thresholds=None,
         private_gathering_thresholds=None,
         mask_thresholds=None,
+        alt_household=False,
     ):
 
         if drop_npi_filter is None:
@@ -246,7 +247,7 @@ class PreprocessedData(object):
             cm_names.append(bin_npi)
 
         for gath_npi, hshold_npi in gathering_household_npi_pairs:
-            gath_npi_ind = self.CMs.index(bin_npi)
+            gath_npi_ind = self.CMs.index(gath_npi)
             hshold_npi_ind = self.CMs.index(hshold_npi)
 
             if "Private" in gath_npi:
@@ -264,18 +265,29 @@ class PreprocessedData(object):
                 )
                 cm_names.append(f"{gath_npi} - {t}")
 
-            # i.e., the household feature is "is there an additional household limit?"
-            household_feature = np.logical_and(
-                self.active_cms[:, gath_npi_ind, :] > 2,
-                self.active_cms[:, gath_npi_ind, :] < 11,
-            )
-            household_feature = np.logical_and(
-                household_feature, self.active_cms[:, hshold_npi_ind, :] == 2
-            )
-            new_active_cms = np.append(
-                new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
-            )
-            cm_names.append(f"Extra {hshold_npi}")
+            if alt_household:
+                # i.e., the household feature is "is there an additional household limit?"
+                household_feature = np.logical_and(
+                    self.active_cms[:, gath_npi_ind, :] < 11,
+                    self.active_cms[:, hshold_npi_ind, :] == 2,
+                )
+                new_active_cms = np.append(
+                    new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
+                )
+                cm_names.append(f"Extra {hshold_npi}")
+            else:
+                # i.e., the household feature is "is there an additional household limit?"
+                household_feature = np.logical_and(
+                    self.active_cms[:, gath_npi_ind, :] > 2,
+                    self.active_cms[:, gath_npi_ind, :] < 11,
+                )
+                household_feature = np.logical_and(
+                    household_feature, self.active_cms[:, hshold_npi_ind, :] == 2
+                )
+                new_active_cms = np.append(
+                    new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
+                )
+                cm_names.append(f"Extra {hshold_npi}")
 
         mask_ind = self.CMs.index(mask_npi)
         for t in mask_thresholds:
@@ -299,6 +311,64 @@ class PreprocessedData(object):
 
         cm_names = np.array(cm_names)[include_npi].tolist()
         self.active_cms = new_active_cms[:, include_npi, :]
+        self.CMs = cm_names
+
+    def legacy_featurize(self):
+        # everything is hardcoded for now
+        gathering_thresholds = [6, 30]
+        mask_thresholds = [3]
+
+        gathering_npis = [
+            "Public Indoor Gathering Person Limit",
+            "Private Indoor Gathering Person Limit",
+        ]
+        binary_npis = [
+            "Some Face-to-Face Businesses Closed",
+            "Gastronomy Closed",
+            "Leisure Venues Closed",
+            "All Face-to-Face Businesses Closed",
+            "Curfew",
+            "Childcare Closed",
+            "Primary Schools Closed",
+            "Secondary Schools Closed",
+            "Universities Away",
+        ]
+        mask_npi = "Mandatory Mask Wearing"
+
+        nCMs = (
+            len(binary_npis)
+            + len(mask_thresholds)
+            + len(gathering_npis) * len(gathering_thresholds)
+        )
+
+        nRs, _, nDs = self.active_cms.shape
+
+        new_active_cms = np.zeros((nRs, nCMs, nDs))
+
+        cm_index = 0
+        cm_names = []
+        for bin_npi in binary_npis:
+            old_index = self.CMs.index(bin_npi)
+            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :]
+            cm_index += 1
+            cm_names.append(bin_npi)
+
+        for gat_npi in gathering_npis:
+            for t in gathering_thresholds:
+                old_index = self.CMs.index(gat_npi)
+                new_active_cms[:, cm_index, :] = np.logical_and(
+                    self.active_cms[:, old_index, :] > 0,
+                    self.active_cms[:, old_index, :] < t + 1,
+                )
+                cm_names.append(f"{gat_npi} < {t}")
+                cm_index += 1
+
+        for t in mask_thresholds:
+            old_index = self.CMs.index(mask_npi)
+            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :] > t - 1
+            cm_names.append(f"{mask_npi} > {t}")
+            cm_index += 1
+
         self.CMs = cm_names
         self.active_cms = new_active_cms
 

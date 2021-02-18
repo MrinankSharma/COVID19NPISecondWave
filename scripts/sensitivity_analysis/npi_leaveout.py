@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
-    
+
     for npi in args.npis:
         data.remove_npi_by_index()
 
