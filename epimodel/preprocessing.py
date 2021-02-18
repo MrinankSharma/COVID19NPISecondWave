@@ -6,7 +6,10 @@ PreprocessedData Class definition.
 import numpy as np
 import pandas as pd
 
-def preprocess_data(data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30):
+
+def preprocess_data(
+    data_path, last_day="2021-01-09", npi_start_col=3, skipcases=10, skipdeaths=30
+):
     """
     Process data, return PreprocessedData() object
 
