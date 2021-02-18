@@ -16,18 +16,35 @@ def rc_model_1a(
     seeding_scale=3.0,
     infection_noise_scale=5.0,
     output_noise_scale_prior=5.0,
+    ppool_total_variability=0.15,
     **kwargs,
 ):
     for k in kwargs.keys():
         print(f"{k} is not being used")
 
     # First, compute R.
-    # sample basic_R and intervention effects from their priors.
-    alpha_i = sample_intervention_effects(intervention_prior)
-    basic_R = sample_basic_R(basic_R_prior)
+    # sample intervention effects from their priors.
 
-    # no more partial pooling
-    cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
+    # mean intervention effects
+    alpha_i = sample_intervention_effects(data.nCMs, intervention_prior)
+
+    # partial pooling
+    sigma_i = ((ppool_total_variability ** 2) / data.nCMs) ** 0.5
+    alpha_ic_noise = numpyro.sample(
+        "alpha_ic_noise", dist.Normal(loc=jnp.zeros((data.nCs, data.nCMs)))
+    )
+    alpha_li = numpyro.deterministic(
+        "alpha_ic",
+        alpha_i.reshape((1, data.nCMs)).repeat(data.nRs, axis=0)
+        + (data.RC_mat @ (alpha_ic_noise * sigma_i)),
+    )
+
+    # transmission reduction
+    cm_reduction = jnp.sum(
+        data.active_cms * alpha_li.reshape((data.nRs, data.nCMs, 1)), axis=1
+    )
+
+    basic_R = sample_basic_R(data.nRs, basic_R_prior)
 
     # number of 'noise points'
     # -2 since no change for the first 3 weeks.
