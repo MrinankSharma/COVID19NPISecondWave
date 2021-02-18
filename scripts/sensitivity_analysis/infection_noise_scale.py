@@ -16,7 +16,7 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--rgs", dest="rgs", type=int, help="Region indices to leave out", nargs="+"
+    "--infection_noise_scale", dest="infection_noise_scale", type=float, help="Infection Noise Scale"
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -32,9 +32,9 @@ if __name__ == "__main__":
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
-
-    for rg in args.rgs:
-        data.mask_region_by_index(rg)
+    
+    for npi in args.npis:
+        data.remove_npi_by_index()
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -47,10 +47,10 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
-    model_extra_bd = load_model_config(args.model_config)
-    pprint_mb_dict(model_extra_bd)
+    model_build_dict = config["model_kwargs"]
+    model_build_dict["infection_noise_scale"] = args.infection_noise_scale
 
-    posterior_samples, warmup_samples, info_dict, mcmc = run_model(
+    posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
         ep,
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=model_extra_bd,
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"rgs": args.rgs}
+    info_dict["exp_config"] = {"infection_noise_scale": args.infection_noise_scale}
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

@@ -51,6 +51,13 @@ def add_argparse_arguments(argparse):
     )
 
     argparse.add_argument(
+        "--num_warmup",
+        dest="num_warmup",
+        type=int,
+        help="the number of warmup samples to draw",
+    )
+
+    argparse.add_argument(
         "--model_config",
         dest="model_config",
         type=str,
@@ -86,7 +93,7 @@ def generate_base_output_dir(model_type, model_config, exp_tag):
 
 
 def get_summary_save_keys():
-    return ["alpha_i", "sigma_i", "alpha_ic"]
+    return ["alpha_i"]
 
 
 def get_data_path():

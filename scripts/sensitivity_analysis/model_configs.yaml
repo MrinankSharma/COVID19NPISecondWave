@@ -1,7 +1,15 @@
 # default model config does not override anything
 default: {}
 
+# just an example of how to use these configs
 alt_prior:
-  intervention_prior:
-    type: normal
-    scale: 0.15
+  model_kwargs:
+    intervention_prior:
+      type: normal
+      scale: 0.15
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
