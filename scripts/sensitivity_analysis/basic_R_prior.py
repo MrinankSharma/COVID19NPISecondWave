@@ -44,9 +44,6 @@ if __name__ == "__main__":
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
 
-    for npi in args.npis:
-        data.remove_npi_by_index()
-
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
     td = get_tree_depth_from_model_str(args.model_type)
