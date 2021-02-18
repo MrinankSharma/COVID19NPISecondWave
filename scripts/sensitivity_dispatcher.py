@@ -53,12 +53,14 @@ def run_types_to_commands(run_types, exp_options):
             experiment_file = exp_rt["experiment_file"]
             num_chains = exp_rt["num_chains"]
             num_samples = exp_rt["num_samples"]
+            num_warmup = exp_rt["num_warmup"]
             exp_tag = exp_rt["experiment_tag"]
             model_type = args.model_type
 
             cmds = [
                 f"python scripts/sensitivity_analysis/{experiment_file} --model_type {model_type}"
-                f" --num_samples {num_samples} --num_chains {num_chains} --exp_tag {exp_tag} --model_config {model_config}"
+                f" --num_samples {num_samples} --num_chains {num_chains} --exp_tag {exp_tag}"
+                f" --model_config {model_config} --num_warmup {num_warmup} "
             ]
 
             for key, value in exp_rt["args"].items():
