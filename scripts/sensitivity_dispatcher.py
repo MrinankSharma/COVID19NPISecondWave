@@ -47,7 +47,7 @@ def run_types_to_commands(run_types, exp_options):
     configs = args.model_config
 
     for config in configs:
-        model_config = args.model_config
+        model_config = config
         for rt in run_types:
             exp_rt = exp_options[rt]
             experiment_file = exp_rt["experiment_file"]
