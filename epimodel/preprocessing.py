@@ -402,3 +402,21 @@ class PreprocessedData(object):
         for r_i, c in enumerate(self.Cs):
             C_ind = self.unique_Cs.index(c)
             self.RC_mat[r_i, C_ind] = 1
+
+    def mask_new_variant(self, fraction = 0.1):
+        variant_df = pd.read_csv('../data/nuts3_new_variant_fraction.csv')
+        variant_df['date'] = pd.to_datetime(variant_df['date'], format = '%Y-%m-%d')
+        variant_df['nuts3'] = variant_df['nuts3'].replace(['Buckinghamshire'],'Buckinghamshire CC')
+
+        variant_df = variant_df[variant_df['frac'] > fraction]
+        regions_to_mask = np.unique(variant_df['nuts3'])
+        variant_df = variant_df.set_index(['nuts3'])
+        mask_forward_dates = []
+        for region in regions_to_mask:
+            try:
+                mask_forward_dates.append(variant_df.loc[region]['date'][0])
+            except:
+                mask_forward_dates.append(variant_df.loc[region]['date'])
+        for i in range(len(mask_forward_dates)):
+            self.new_cases[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
+            self.new_deaths[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
