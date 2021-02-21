@@ -81,7 +81,7 @@ def plot_intervention_correlation(
     assert len(cm_names) == nCMs
 
     plt.imshow(
-        np.corrcoef(posterior_samples["alpha_i"].T), vmin=-1, vmax=1, cmap="PuOr"
+        cormat, vmin=-1, vmax=1, cmap="PuOr"
     )
     plt.colorbar()
     plt.xticks(np.arange(nCMs), cm_names, rotation=90)

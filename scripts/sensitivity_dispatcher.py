@@ -126,6 +126,8 @@ if __name__ == "__main__":
         for command in commands:
             # grab set of cpus
             coreset = available_coresets.pop()
+            # unfortunately, the best way to parallelise well is to set processor
+            # affinities.
             full_cmd = f"taskset -c {coreset} {command}"
             print(f"Running {full_cmd}")
             subproc = subprocess.Popen(full_cmd, shell=True)
