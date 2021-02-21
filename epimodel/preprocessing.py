@@ -190,6 +190,8 @@ class PreprocessedData(object):
         private_gathering_thresholds=None,
         mask_thresholds=None,
         alt_household=False,
+        household_upper_limit=11,
+        gatherings_aggregation=None,
     ):
 
         if drop_npi_filter is None:
@@ -207,15 +209,121 @@ class PreprocessedData(object):
         if mask_thresholds is None:
             mask_thresholds = [3]
 
-        gathering_household_npi_pairs = [
-            ("Public Outdoor Gathering Person Limit", "Public Outdoor Household Limit"),
-            ("Public Indoor Gathering Person Limit", "Public Indoor Household Limit"),
-            (
-                "Private Outdoor Gathering Person Limit",
-                "Private Outdoor Household Limit",
-            ),
-            ("Private Indoor Gathering Person Limit", "Private Indoor Household Limit"),
-        ]
+        if gatherings_aggregation is None:
+            agg = None
+
+            gathering_household_npi_pairs = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Public Outdoor Household Limit",
+                ),
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Public Indoor Household Limit",
+                ),
+                (
+                    "Private Outdoor Gathering Person Limit",
+                    "Private Outdoor Household Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Indoor Household Limit",
+                ),
+            ]
+
+        elif gatherings_aggregation == "pub_priv":
+            agg = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Private Outdoor Gathering Person Limit",
+                    "Outdoor Gathering Person Limit",
+                ),
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Private Indoor Gathering Person Limit",
+                    "Indoor Gathering Person Limit",
+                ),
+                (
+                    "Public Outdoor Household Limit",
+                    "Private Outdoor Household Limit",
+                    "Outdoor Household Limit",
+                ),
+                (
+                    "Public Indoor Household Limit",
+                    "Private Indoor Household Limit",
+                    "Indoor Household Limit",
+                ),
+            ]
+
+            new_active_cms = np.copy(self.active_cms)
+            for cm_a, cm_b, new_name in agg:
+                # i need to properly deal with the zeros now too
+                cm_a_ind = self.CMs.index(cm_a)
+                cm_b_ind = self.CMs.index(cm_b)
+
+                cm_a_vals = self.active_cms[:, cm_a_ind, :]
+                cm_a_vals[cm_a_vals == 0] = np.inf
+                cm_b_vals = self.active_cms[:, cm_b_ind, :]
+                cm_b_vals[cm_b_vals == 0] = np.inf
+
+                agg_vals = np.minimum(cm_a_vals, cm_b_vals)
+                agg_vals[agg_vals == np.inf] = 0
+
+                new_active_cms[:, cm_a_ind, :] = agg_vals
+                self.CMs[cm_a_ind] = new_name
+
+            gathering_household_npi_pairs = [
+                ("Outdoor Gathering Person Limit", "Outdoor Household Limit"),
+                ("Indoor Gathering Person Limit", "Indoor Household Limit"),
+            ]
+            self.active_cms = new_active_cms
+
+        elif gatherings_aggregation == "out_in":
+            agg = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Public Indoor Gathering Person Limit",
+                    "Public Gathering Person Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Outdoor Gathering Person Limit",
+                    "Private Gathering Person Limit",
+                ),
+                (
+                    "Public Outdoor Household Limit",
+                    "Public Indoor Household Limit",
+                    "Public Household Limit",
+                ),
+                (
+                    "Private Indoor Household Limit",
+                    "Private Outdoor Household Limit",
+                    "Private Household Limit",
+                ),
+            ]
+
+            new_active_cms = np.copy(self.active_cms)
+            for cm_a, cm_b, new_name in agg:
+                # i need to properly deal with the zeros now too
+                cm_a_ind = self.CMs.index(cm_a)
+                cm_b_ind = self.CMs.index(cm_b)
+
+                cm_a_vals = self.active_cms[:, cm_a_ind, :]
+                cm_a_vals[cm_a_vals == 0] = np.inf
+                cm_b_vals = self.active_cms[:, cm_b_ind, :]
+                cm_b_vals[cm_b_vals == 0] = np.inf
+
+                agg_vals = np.minimum(cm_a_vals, cm_b_vals)
+                agg_vals[agg_vals == np.inf] = 0
+
+                new_active_cms[:, cm_a_ind, :] = agg_vals
+                self.CMs[cm_a_ind] = new_name
+
+            gathering_household_npi_pairs = [
+                ("Public Gathering Person Limit", "Public Household Limit"),
+                ("Private Gathering Person Limit", "Private Household Limit"),
+            ]
+            self.active_cms = new_active_cms
 
         binary_npis = [
             "Some Face-to-Face Businesses Closed",
@@ -279,7 +387,7 @@ class PreprocessedData(object):
                 # i.e., the household feature is "is there an additional household limit?"
                 household_feature = np.logical_and(
                     self.active_cms[:, gath_npi_ind, :] > 2,
-                    self.active_cms[:, gath_npi_ind, :] < 11,
+                    self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
                 )
                 household_feature = np.logical_and(
                     household_feature, self.active_cms[:, hshold_npi_ind, :] == 2
