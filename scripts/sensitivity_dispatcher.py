@@ -127,9 +127,10 @@ if __name__ == "__main__":
             # grab set of cpus
             coreset = available_coresets.pop()
             full_cmd = f"taskset -c {coreset} {command}"
-            subprocess = subprocess.Popen(full_cmd, shell=True)
-            processes.add((coreset, subprocess))
-            time.sleep(10.0)
+            print(f"Running {full_cmd}")
+            subproc = subprocess.Popen(full_cmd, shell=True)
+            processes.add((coreset, subproc))
+            time.sleep(5.0)
 
             if len(processes) >= args.max_parallel_runs:
                 # wait for a child process to complete
