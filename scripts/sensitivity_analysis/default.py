@@ -43,7 +43,6 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
-
     model_build_dict = config["model_kwargs"]
 
     posterior_samples, _, info_dict, _ = run_model(
