@@ -1,18 +1,11 @@
 import sys, os
-
-os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=1 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "intra_op_parallelism_threads=1"
-)
-
-
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
+import numpyro
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
@@ -20,8 +13,10 @@ argparser = argparse.ArgumentParser()
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+numpyro.set_host_device_count(args.num_chains)
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
+    sys.stdout.flush()
     config = load_model_config(args.model_config)
     pprint_mb_dict(config)
 
@@ -58,7 +53,7 @@ if __name__ == "__main__":
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
-        chain_method="sequential",
+        chain_method="parallel",
     )
 
     info_dict["model_config_name"] = args.model_config
