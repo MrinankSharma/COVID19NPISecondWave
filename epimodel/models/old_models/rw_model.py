@@ -1,30 +1,22 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.signal as jss
-
 import numpyro
 import numpyro.distributions as dist
 
-from .model_utils import (
-    create_intervention_prior,
+from epimodel.models.model_utils import (
     get_discrete_renewal_transition,
     observe_cases_deaths,
     setup_dr_infection_model,
-    get_output_delay_transition,
 )
 
 
-def mixed_csdelay_model(
-    data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs
-):
-    alpha_i = create_intervention_prior(data.nCMs)
-    cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
-
+def rw_model(data, ep, r_walk_noise_scale=0.15, noise_scale_period=7, **kwargs):
     # looking at most places in UK, austria, R estimates from the imperial report seem to be at about 1 in local areas
     # setting it to be at about 1 seems pretty reasonable to me.
     basic_R = numpyro.sample(
         "basic_R",
-        dist.TruncatedNormal(low=0.1, loc=1.5 * jnp.ones(data.nRs), scale=0.2),
+        dist.TruncatedNormal(low=0.1, loc=1.1 * jnp.ones(data.nRs), scale=0.2),
     )
 
     # number of 'noise points'
@@ -37,7 +29,7 @@ def mixed_csdelay_model(
         noise_scale_period,
         axis=-1,
     )[: data.nRs, : data.nDs]
-    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) - cm_reduction + log_Rt_noise
+    log_Rt = jnp.log(basic_R.reshape((data.nRs, 1))) + log_Rt_noise
     Rt = numpyro.deterministic("Rt", jnp.exp(log_Rt))  # nRs x nDs
 
     (
@@ -46,7 +38,6 @@ def mixed_csdelay_model(
         infection_noise,
         seeding_padding,
     ) = setup_dr_infection_model(data, ep)
-
     discrete_renewal_transition = get_discrete_renewal_transition(ep)
 
     # we need to transpose R because jax.lax.scan scans over the first dimension. We want to scan over time
@@ -70,14 +61,18 @@ def mixed_csdelay_model(
     future_cases_t = total_infections
     future_deaths_t = jnp.multiply(total_infections, cfr)
 
-    output_delay_transition = get_output_delay_transition(seeding_padding, data)
-
-    _, expected_observations = jax.lax.scan(
-        output_delay_transition,
-        0.0,
-        [future_cases_t, future_deaths_t, ep.DPCv_pa, ep.DPDv_pa],
+    ## at the moment, this is technically neglecting the very earliest infections
+    expected_cases = numpyro.deterministic(
+        "expected_cases",
+        jss.convolve2d(future_cases_t, ep.DPCv, mode="full")[
+            :, seeding_padding : data.nDs + seeding_padding
+        ],
     )
-    expected_cases = numpyro.deterministic("expected_cases", expected_observations[0])
-    expected_deaths = numpyro.deterministic("expected_deaths", expected_observations[1])
+    expected_deaths = numpyro.deterministic(
+        "expected_deaths",
+        jss.convolve2d(future_deaths_t, ep.DPDv, mode="full")[
+            :, seeding_padding : data.nDs + seeding_padding
+        ],
+    )
 
     observe_cases_deaths(data, expected_cases, expected_deaths)

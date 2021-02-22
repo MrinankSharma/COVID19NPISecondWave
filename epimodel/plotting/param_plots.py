@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 import arviz as az
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 
 def plot_gi(posterior_samples, mean_varname="gi_mean", sd_varname="gi_sd", newfig=True):
