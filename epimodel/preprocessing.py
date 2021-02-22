@@ -420,3 +420,47 @@ class PreprocessedData(object):
         for i in range(len(mask_forward_dates)):
             self.new_cases[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
             self.new_deaths[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
+
+    def mask_reopening(self, option, npis_to_exclude=None):
+        if npis_to_exclude is None:
+            npis_to_exclude = ['Childcare Closed', 'Primary Schools Closed', 'Secondary Schools Closed',
+                               'Universities Away']
+        npis_to_include = [CM for CM in self.CMs if CM not in npis_to_exclude]
+
+        active_CMs = self.active_cms
+        active_CMs = (active_CMs > 0).astype(int)
+        changes = []
+        for i in range(active_CMs.shape[0]):
+            change = np.zeros((len(self.CMs), len(self.Ds)))
+            change[:, 1:] = active_CMs[i, :, 1:] - active_CMs[i, :, :-1]
+            changes.append(change)
+        self.number_masked = []
+        for r in range(active_CMs.shape[0]):
+            days_masked_npi = []
+            for npi in npis_to_include:
+                npi_index = self.CMs.index(npi)
+                changes_region = changes[r][npi_index]
+                starts = list(np.where(changes_region == -1)[0])
+                ends = list(np.where(changes_region == 1)[0])
+                # print(starts, ends)
+                if len(starts) > 0:
+                    if len(ends) > 0:
+                        if ends[-1] < starts[-1]:
+                            ends.append(len(self.Ds) - 1)
+                        if ends[0] < starts[0]:
+                            ends = ends[1:]
+                    else:
+                        ends.append(len(self.Ds) - 1)
+                    # print(starts, ends)
+                    for i in range(len(starts)):
+                        if option == 3:
+                            days_masked_npi.append(ends[i] - starts[i])
+                            self.new_cases[r, starts[i]:ends[i]] = np.ma.masked
+                            self.new_deaths[r, starts[i]:ends[i]] = np.ma.masked
+                        if option == 4:
+                            days_masked_npi.append(len(self.Ds) - 1 - starts[i])
+                            self.new_cases[r, starts[i]:] = np.ma.masked
+                            self.new_deaths[r, starts[i]:] = np.ma.masked
+                else:
+                    days_masked_npi.append(0)
+            self.number_masked.append(max(days_masked_npi))
