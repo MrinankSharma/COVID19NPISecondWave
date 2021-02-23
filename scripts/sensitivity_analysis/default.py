@@ -63,6 +63,7 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {}
+    info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

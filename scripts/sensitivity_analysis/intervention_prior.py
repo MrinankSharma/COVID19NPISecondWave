@@ -10,7 +10,10 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--npis", dest="npis", type=int, help="NPI indices to leave out", nargs="+"
+    "--intervention_prior",
+    dest="intervention_prior",
+    nargs=2,
+    help="[prior type]  [prior_scale]",
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -41,6 +44,13 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
+    model_build_dict = config["model_kwargs"]
+    intervention_prior = {
+        "type": str(args.intervention_prior[0]),
+        "scale": float(args.intervention_prior[1]),
+    }
+    model_build_dict["intervention_prior"] = intervention_prior
+
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
@@ -50,7 +60,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=config["model_kwargs"],
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
@@ -62,7 +72,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"npis": args.npis}
+    info_dict["exp_config"] = {"intervention_prior": intervention_prior}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!

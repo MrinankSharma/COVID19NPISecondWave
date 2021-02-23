@@ -1,11 +1,5 @@
 import sys, os
 
-os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=1 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "intra_op_parallelism_threads=1"
-)
-
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
@@ -66,7 +60,7 @@ if __name__ == "__main__":
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
-        chain_method="sequential",
+        chain_method="parallel",
     )
 
     info_dict["model_config_name"] = args.model_config
@@ -75,6 +69,7 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {"ppool_total_variability": args.ppool_total_variability}
+    info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

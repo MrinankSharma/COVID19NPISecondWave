@@ -10,8 +10,24 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--npis", dest="npis", type=int, help="NPI indices to leave out", nargs="+"
+    "--cases_delay_mean_shift",
+    dest="cases_delay_mean_shift",
+    type=float,
+    help="how much the cases delay mean is shifted for all countries",
 )
+argparser.add_argument(
+    "--death_delay_mean_shift",
+    dest="death_delay_mean_shift",
+    type=float,
+    help="how much the death delay mean is shifted for all countries",
+)
+argparser.add_argument(
+    "--gen_int_mean_shift",
+    dest="gen_int_mean_shift",
+    type=float,
+    help="how much the generation interval mean is shifted",
+)
+
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
@@ -25,10 +41,19 @@ if __name__ == "__main__":
     data.featurize(**config["featurize_kwargs"])
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
 
-    for npi in args.npis:
-        data.remove_npi_by_index()
+    # shift delays
+    ep.generation_interval["mean"] = ep.generation_interval[
+        "mean"
+    ] = args.gen_int_mean_shift
+
+    for _, d in ep.infection_to_reporting_delays.items():
+        d["mean"] = d["mean"] + args.cases_delay_mean_shift
+
+    for _, d in ep.infection_to_fatality_delays.items():
+        d["mean"] = d["mean"] + args.death_delay_mean_shift
+
+    ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -41,6 +66,8 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
+    model_build_dict = config["model_kwargs"]
+
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
@@ -50,7 +77,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=config["model_kwargs"],
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
@@ -62,7 +89,11 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"npis": args.npis}
+    info_dict["exp_config"] = {
+        "cases_delay_mean_shift": args.cases_delay_mean_shift,
+        "deaths_delay_mean_shift": args.death_delay_mean_shift,
+        "gen_int_mean_shift": args.gen_int_mean_shift,
+    }
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
