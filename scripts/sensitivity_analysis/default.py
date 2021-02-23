@@ -62,6 +62,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
+    info_dict["exp_config"] = {}
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(
