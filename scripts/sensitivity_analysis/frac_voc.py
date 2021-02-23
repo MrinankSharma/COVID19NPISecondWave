@@ -10,7 +10,10 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--npis", dest="npis", type=int, help="NPI indices to leave out", nargs="+"
+    "--maximum_fraction_voc",
+    dest="maximum_fraction_voc",
+    type=float,
+    help="maximum voc fraction (only affects UK)",
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -23,6 +26,10 @@ if __name__ == "__main__":
     print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize(**config["featurize_kwargs"])
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+        maximum_fraction_voc=args.maximum_fraction_voc,
+    )
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
@@ -41,6 +48,8 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
+    model_build_dict = config["model_kwargs"]
+
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
@@ -50,7 +59,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=config["model_kwargs"],
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
@@ -62,7 +71,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"npis": args.npis}
+    info_dict["exp_config"] = {"maximum_fraction_voc": args.maximum_fraction_voc}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!

@@ -100,6 +100,10 @@ def get_data_path():
     return "data/all_merged_data.csv"
 
 
+def get_new_variant_path():
+    return "data/nuts3_new_variant_fraction.csv"
+
+
 def load_keys_from_samples(keys, posterior_samples, summary_dict):
     for k in keys:
         if k in posterior_samples.keys():

@@ -145,50 +145,50 @@ def plot_intervention_sd(
     plt.title("NPI Effectiveness Variability")
 
 
+"""
+ e.g., grouped_npis can be something like this:
+ grouped_npi_base = {
+    "Some Face-to-Face Businesses Closed": {
+        "npis": ["Some Face-to-Face Businesses Closed"],
+        "type": "include"},
+    "Gastronomy Closed": {
+        "npis": ["Gastronomy Closed"],
+        "type": "include"},
+    "Leisure Venues Closed": {
+        "npis": ["Leisure Venues Closed"],
+        "type": "include"},
+    "All Face-to-Face Businesses Closed + Stay at Home Order": {
+        "npis": ["All Face-to-Face Businesses Closed", "Leisure Venues Closed", "Gastronomy Closed", "Some Face-to-Face Businesses Closed", "Stay at Home Order"],
+        "type": "include"},
+    "Curfew": {
+        "npis": ["Curfew"],
+        "type": "include"},
+    "Childcare Closed": {
+        "npis": ["Childcare Closed"],
+        "type": "include"},
+    "Schools Closed": {
+        "npis": ["Primary Schools Closed", "Secondary Schools Closed"],
+        "type": "include"},
+    "All Education Closed": {
+        "npis": ["Primary Schools Closed", "Secondary Schools Closed", "Universities Away", "Childcare Closed"],
+        "type": "include"},
+    "Universities Away": {
+        "npis": ["Universities Away"],
+        "type": "include"},
+    "Mandatory Mask Wearing >= 3": {
+        "npis": ['Mandatory Mask Wearing >= 3'],
+        "type": "include"}
+}
+
+
+ :param grouped_npis: 
+ :param alpha_i_samples: 
+ :param npi_names: 
+ :return: 
+ """
+
+
 def combine_npi_samples_exclude_missing(grouped_npis, alpha_i_samples, npi_names):
-     """
-     e.g., grouped_npis can be something like this:
-     grouped_npi_base = {
-        "Some Face-to-Face Businesses Closed": {
-            "npis": ["Some Face-to-Face Businesses Closed"],
-            "type": "include"},
-        "Gastronomy Closed": {
-            "npis": ["Gastronomy Closed"],
-            "type": "include"},
-        "Leisure Venues Closed": {
-            "npis": ["Leisure Venues Closed"],
-            "type": "include"},
-        "All Face-to-Face Businesses Closed + Stay at Home Order": {
-            "npis": ["All Face-to-Face Businesses Closed", "Leisure Venues Closed", "Gastronomy Closed", "Some Face-to-Face Businesses Closed", "Stay at Home Order"],
-            "type": "include"},
-        "Curfew": {
-            "npis": ["Curfew"],
-            "type": "include"},
-        "Childcare Closed": {
-            "npis": ["Childcare Closed"],
-            "type": "include"},
-        "Schools Closed": {
-            "npis": ["Primary Schools Closed", "Secondary Schools Closed"],
-            "type": "include"},
-        "All Education Closed": {
-            "npis": ["Primary Schools Closed", "Secondary Schools Closed", "Universities Away", "Childcare Closed"],
-            "type": "include"},
-        "Universities Away": {
-            "npis": ["Universities Away"],
-            "type": "include"},
-        "Mandatory Mask Wearing >= 3": {
-            "npis": ['Mandatory Mask Wearing >= 3'],
-            "type": "include"}
-    }
-     
-          
-     :param grouped_npis: 
-     :param alpha_i_samples: 
-     :param npi_names: 
-     :return: 
-     """"""
-    
-    
     nS, nCMs_orig = alpha_i_samples.shape
     CMs_new = list(grouped_npis.keys())
     CMs_new_include = np.ones(len(CMs_new), dtype=np.bool)

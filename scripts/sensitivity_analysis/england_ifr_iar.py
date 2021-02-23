@@ -3,20 +3,22 @@ import sys, os
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
+from epimodel.models.release_candidate_model_v1 import rc_model_1a_uk_ifriar
 from epimodel.script_utils import *
 
 import argparse
+import numpyro
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument(
-    "--npis", dest="npis", type=int, help="NPI indices to leave out", nargs="+"
-)
+
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+numpyro.set_host_device_count(args.num_chains)
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
+    sys.stdout.flush()
     config = load_model_config(args.model_config)
     pprint_mb_dict(config)
 
@@ -27,10 +29,9 @@ if __name__ == "__main__":
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
 
-    for npi in args.npis:
-        data.remove_npi_by_index()
+    model_func = rc_model_1a_uk_ifriar
 
-    model_func = get_model_func_from_str(args.model_type)
+    # this will work for now, but only because the argument is ignored
     ta = get_target_accept_from_model_str(args.model_type)
     td = get_tree_depth_from_model_str(args.model_type)
 
@@ -41,6 +42,8 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
+    model_build_dict = config["model_kwargs"]
+
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
@@ -50,7 +53,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=config["model_kwargs"],
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
@@ -62,7 +65,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"npis": args.npis}
+    info_dict["exp_config"] = {}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
