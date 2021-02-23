@@ -141,7 +141,7 @@ def rc_model_1a(
 
     _, (expected_cases, expected_deaths) = jax.lax.scan(
         output_delay_transition,
-        0,
+        0.0,
         [future_cases_t, future_deaths_t, region_cases_delays, region_deaths_delays],
     )
 

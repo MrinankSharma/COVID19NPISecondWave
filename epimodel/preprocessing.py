@@ -374,7 +374,6 @@ class PreprocessedData(object):
                 cm_names.append(f"{gath_npi} - {t}")
 
             if alt_household:
-                # i.e., the household feature is "is there an additional household limit?"
                 household_feature = np.logical_and(
                     self.active_cms[:, gath_npi_ind, :] < 11,
                     self.active_cms[:, hshold_npi_ind, :] == 2,
