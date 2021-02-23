@@ -1,4 +1,5 @@
 import sys, os
+
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data

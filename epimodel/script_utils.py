@@ -84,7 +84,7 @@ def pprint_mb_dict(d):
 
 def generate_base_output_dir(model_type, model_config, exp_tag):
     out_path = os.path.join(
-        "sensitivity_analysis", f"{model_type};{model_config}", exp_tag
+        "sensitivity_analysis", f"{model_type}_c{model_config}", exp_tag
     )
     if not os.path.exists(out_path):
         os.makedirs(out_path)
