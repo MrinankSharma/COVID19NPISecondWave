@@ -33,6 +33,9 @@ if __name__ == "__main__":
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
     td = get_tree_depth_from_model_str(args.model_type)
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
 
     base_outpath = generate_base_output_dir(
         args.model_type, args.model_config, args.exp_tag

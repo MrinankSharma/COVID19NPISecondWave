@@ -416,3 +416,12 @@ gath_set_g_iii:
     gatherings_aggregation_type: stricter
     gatherings_aggregation: drop_outdoor
     household_stays_on: True
+
+rc_1a:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 10, 30]
+    private_gathering_thresholds: [1, 6, 10, 30]
+    gatherings_aggregation_type: stricter
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
