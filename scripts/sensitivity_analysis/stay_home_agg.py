@@ -29,6 +29,7 @@ if __name__ == "__main__":
     featurize_arg_dict["stay_home_all_businesses_aggregation"] = args.stay_home_agg
     data.featurize(**featurize_arg_dict)
     data.mask_new_variant(new_variant_fraction_fname=get_new_variant_path())
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)

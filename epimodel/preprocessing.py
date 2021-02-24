@@ -362,8 +362,14 @@ class PreprocessedData(object):
             drop_npi_filter.append({"query": "Outdoor", "type": "includes"})
 
             gathering_household_npi_pairs = [
-                ("Public Indoor Gathering Person Limit", "Public Indoor Household Limit"),
-                ("Private Indoor Gathering Person Limit", "Private Indoor Household Limit"),
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Public Indoor Household Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Indoor Household Limit",
+                ),
             ]
 
             print(

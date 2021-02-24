@@ -28,6 +28,9 @@ if __name__ == "__main__":
     data.featurize(**config["featurize_kwargs"])
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
+    )
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
         maximum_fraction_voc=args.maximum_fraction_voc,
     )
     print("Loading EpiParam")

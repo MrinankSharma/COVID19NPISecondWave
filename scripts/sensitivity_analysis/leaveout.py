@@ -10,7 +10,7 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--rgs", dest="rgs", type=int, help="Region indices to leave out", nargs="+"
+    "--cs", dest="cs", type=int, help="Country indices to leave out", nargs="+"
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -26,9 +26,13 @@ if __name__ == "__main__":
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
 
-    for rg in args.rgs:
-        data.remove_region_by_index()
+    for r_indices in data.C_indices[args.cs]:
+        for r_i in r_indices:
+            data.remove_region_by_index(r_i)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -62,7 +66,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"rgs": args.rgs}
+    info_dict["exp_config"] = {"cs": cs.rgs}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
