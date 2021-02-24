@@ -26,6 +26,10 @@ argparser.add_argument(
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
