@@ -7,8 +7,8 @@ holdout:
     rg: [[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]] # we want to actually holdout them all at once, so nested list
 
 leaveout:
-  experiment_file: leavout.py
-  experiment_tag: leavout
+  experiment_file: leaveout.py
+  experiment_tag: leaveout
   num_warmup: 250
   num_samples: 500
   args:
