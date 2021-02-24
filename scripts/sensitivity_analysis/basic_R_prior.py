@@ -59,7 +59,7 @@ if __name__ == "__main__":
     basic_R_prior = {
         "mean": args.basic_R_mean,
         "type": "trunc_normal",
-        "variability": args.basic_R_variability,
+        "variability": args.basic_R_scale,
     }
 
     model_build_dict = config["model_kwargs"]
