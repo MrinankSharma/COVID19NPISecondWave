@@ -126,10 +126,9 @@ infection_noise_scale:
   num_warmup: 500
   num_samples: 1500
   args:
-    infection_noise_scale
+    infection_noise_scale:
       - 1.
       - 3.
-      # - 5.
       - 7.
       - 9.
 
@@ -139,7 +138,7 @@ intervention_prior:
   num_warmup: 500
   num_samples: 1500
   args:
-    intervention_prior
+    intervention_prior:
       - half_normal 0.15
       - asymmetric_laplace 20.
       - normal 0.15
