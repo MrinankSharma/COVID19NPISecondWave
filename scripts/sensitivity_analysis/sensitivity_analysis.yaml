@@ -78,7 +78,7 @@ cases_delay_mean:
       #- 0.0
       - 1.5
       - 3.0
-    deaths_delay_mean_shift:
+    death_delay_mean_shift:
       - 0.0
     gen_int_mean_shift:
       - 0.0
@@ -91,7 +91,7 @@ death_delay_mean:
   args:
     cases_delay_mean_shift:
       - 0.0
-    deaths_delay_mean_shift:
+    death_delay_mean_shift:
       - -4.0
       - -2.0
       #- 0.0
@@ -108,7 +108,7 @@ gen_int_mean:
   args:
     cases_delay_mean_shift:
       - 0.0
-    deaths_delay_mean_shift:
+    death_delay_mean_shift:
       - 0.0
     gen_int_mean_shift:
       - -1.5
