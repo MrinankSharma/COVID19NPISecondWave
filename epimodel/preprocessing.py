@@ -460,7 +460,7 @@ class PreprocessedData(object):
                     self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
                 )
                 household_feature = np.logical_and(
-                    household_feature, self.active_cms[:, hshold_npi_ind, :] == 2
+                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] == 2
                 )
                 new_active_cms = np.append(
                     new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
