@@ -8,12 +8,14 @@ import os
 import numpy as np
 import yaml
 
-from epimodel.models.release_candidate_model_v1 import rc_model_1a
+from epimodel.models.release_candidate_model_v1 import rc_model_1a, rc_model_2a
 
 
 def get_model_func_from_str(model_type_str):
     if model_type_str == "rc_1a":
         return rc_model_1a
+    if model_type_str == "rc_2a":
+        return rc_model_2a
 
 
 def get_target_accept_from_model_str(model_type_str):
