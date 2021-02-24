@@ -36,8 +36,10 @@ if __name__ == "__main__":
     )
 
     for c_i in args.cs:
-        for r_i in data.C_indices[c_i]:
-            data.remove_region_by_index(r_i)
+        current_Rs_in_c_i = data.C_indices[c_i]
+        while current_Rs_in_c_i.size > 0:
+            data.remove_region_by_index(current_Rs_in_c_i[0])
+            current_Rs_in_c_i = data.C_indices[c_i]
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
