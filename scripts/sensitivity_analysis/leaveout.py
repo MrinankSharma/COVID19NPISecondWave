@@ -15,6 +15,10 @@ argparser.add_argument(
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -23,6 +27,7 @@ if __name__ == "__main__":
     print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize(**config["featurize_kwargs"])
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
@@ -30,8 +35,8 @@ if __name__ == "__main__":
         new_variant_fraction_fname=get_new_variant_path(),
     )
 
-    for r_indices in data.C_indices[args.cs]:
-        for r_i in r_indices:
+    for c_i in args.cs:
+        for r_i in data.C_indices[c_i]:
             data.remove_region_by_index(r_i)
 
     model_func = get_model_func_from_str(args.model_type)
@@ -66,7 +71,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"cs": cs.rgs}
+    info_dict["exp_config"] = {"cs": args.cs}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!

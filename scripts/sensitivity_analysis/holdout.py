@@ -15,6 +15,10 @@ argparser.add_argument(
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -45,8 +49,7 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
-    model_extra_bd = load_model_config(args.model_config)
-    pprint_mb_dict(model_extra_bd)
+    model_build_dict = config["model_kwargs"]
 
     posterior_samples, warmup_samples, info_dict, mcmc = run_model(
         model_func,
@@ -57,7 +60,7 @@ if __name__ == "__main__":
         num_warmup=args.num_warmup,
         target_accept=ta,
         max_tree_depth=td,
-        model_kwargs=model_extra_bd,
+        model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
