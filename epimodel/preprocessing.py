@@ -360,6 +360,12 @@ class PreprocessedData(object):
 
         elif gatherings_aggregation == "drop_outdoor":
             drop_npi_filter.append({"query": "Outdoor", "type": "includes"})
+
+            gathering_household_npi_pairs = [
+                ("Public Indoor Gathering Person Limit", "Public Indoor Household Limit"),
+                ("Private Indoor Gathering Person Limit", "Private Indoor Household Limit"),
+            ]
+
             print(
                 "Note: under drop_outdoor gathering aggregation, the gatherings_aggregation_type is disregarded"
             )
