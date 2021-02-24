@@ -188,7 +188,7 @@ def plot_intervention_sd(
  """
 
 
-def combine_npi_samples_exclude_missing(grouped_npis, alpha_i_samples, npi_names):
+def combine_npi_samples(grouped_npis, alpha_i_samples, npi_names):
     nS, nCMs_orig = alpha_i_samples.shape
     CMs_new = list(grouped_npis.keys())
     CMs_new_include = np.ones(len(CMs_new), dtype=np.bool)
@@ -207,18 +207,5 @@ def combine_npi_samples_exclude_missing(grouped_npis, alpha_i_samples, npi_names
 
     CMs_new = np.array(CMs_new)[CMs_new_include].tolist()
     new_samples = new_samples[:, CMs_new_include]
-
-    return new_samples, CMs_new
-
-
-def combine_npi_samples(grouped_npis, alpha_i_samples):
-    nS, nCMs_orig = alpha_i_samples.shape
-    CMs_new = list(grouped_npis.keys())
-    nCMs_new = len(CMs_new)
-
-    new_samples = np.zeros((nS, nCMs_new))
-    for cm_i_new, (gnpi, sub_npilist) in enumerate(grouped_npis.items()):
-        for cm in sub_npilist:
-            new_samples[:, cm_i_new] += alpha_i_samples[:, cm]
 
     return new_samples, CMs_new
