@@ -17,13 +17,15 @@ args = argparser.parse_args()
 numpyro.set_host_device_count(args.num_chains)
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
-    sys.stdout.flush()
     config = load_model_config(args.model_config)
     pprint_mb_dict(config)
 
     print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize(**config["featurize_kwargs"])
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
