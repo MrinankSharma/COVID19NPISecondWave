@@ -9,8 +9,8 @@ holdout:
 default:
   experiment_file: default.py
   experiment_tag: default
-  num_warmup: 500
-  num_samples: 1500
+  num_warmup: 250
+  num_samples: 250
   args: {}
 
 basic_R_prior_mean:
