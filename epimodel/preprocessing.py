@@ -505,6 +505,7 @@ class PreprocessedData(object):
         self.active_cms = new_active_cms[:, include_npi, :]
         self.CMs = cm_names
         self.featurized = True
+        print(f"generated {self.CMs} are the CM set")
 
     def legacy_featurize(self):
         # everything is hardcoded for now
