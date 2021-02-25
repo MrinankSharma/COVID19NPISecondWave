@@ -244,10 +244,10 @@ class PreprocessedData(object):
             ]
 
         if public_gathering_thresholds is None:
-            public_gathering_thresholds = [1, 6, 10, 30, 200]
+            public_gathering_thresholds = [1, 6, 30, 200]
 
         if private_gathering_thresholds is None:
-            private_gathering_thresholds = [1, 6, 10, 30, 200]
+            private_gathering_thresholds = [1, 6, 30, 200]
 
         if mask_thresholds is None:
             mask_thresholds = [3]
@@ -616,7 +616,6 @@ class PreprocessedData(object):
                 mask_forward_dates.append(variant_df.loc[region]["date"][0])
             except:
                 mask_forward_dates.append(variant_df.loc[region]["date"])
-
 
         for i in range(len(mask_forward_dates)):
             self.new_cases[

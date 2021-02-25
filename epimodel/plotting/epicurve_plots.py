@@ -233,12 +233,16 @@ def plot_area_summary(posterior_samples, region_index, data, cm_style):
 
     plt.subplot(313)
     expected_cases = posterior_samples["expected_cases"][:, region_index, :]
-    psi_cases = posterior_samples["psi_cases"][:, data.unique_Cs.index(data.Cs[region_index])]
+    psi_cases = posterior_samples["psi_cases"][
+        :, data.unique_Cs.index(data.Cs[region_index])
+    ]
     new_cases = data.new_cases[region_index, :]
     plot_area_cases_curve(expected_cases, psi_cases, new_cases, data.Ds)
 
     expected_deaths = posterior_samples["expected_deaths"][:, region_index, :]
-    psi_deaths = posterior_samples["psi_deaths"][:, data.unique_Cs.index(data.Cs[region_index])]
+    psi_deaths = posterior_samples["psi_deaths"][
+        :, data.unique_Cs.index(data.Cs[region_index])
+    ]
     new_deaths = data.new_deaths[region_index, :]
     plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, data.Ds)
 
