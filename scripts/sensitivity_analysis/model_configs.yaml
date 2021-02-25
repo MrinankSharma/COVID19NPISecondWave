@@ -272,5 +272,5 @@ stricter:
     public_gathering_thresholds: [1, 6, 30, 200]
     private_gathering_thresholds: [1, 6, 30, 200]
     gatherings_aggregation: out_in
-    gatherings_aggregation_type: weaker
+    gatherings_aggregation_type: stricter
     household_stays_on: True
