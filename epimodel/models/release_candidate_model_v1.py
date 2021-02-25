@@ -921,7 +921,7 @@ def rc_model_3a(
 
     # number of 'noise points'
     # -2 since no change for the first 3 weeks.
-    nNP = int(data.nDs / r_walk_period) - 2
+    nNP = int(data.nDs / r_walk_period) - 1
 
     r_walk_noise_scale = numpyro.sample(
         "r_walk_noise_scale", dist.HalfNormal(scale=r_walk_noise_scale_prior)
