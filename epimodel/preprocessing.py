@@ -216,7 +216,8 @@ class PreprocessedData(object):
             "Universities Away",
         ]
 
-        def aggregate_numerical_npis(agg_type, cm_a_ind, cm_b_ind, active_cms):
+        def aggregate_numerical_npis(agg_type, cm_a_ind, cm_b_ind, active_cms_in):
+            active_cms = np.copy(active_cms_in)
             if agg_type == "stricter":
                 cm_a_vals = active_cms[:, cm_a_ind, :]
                 cm_a_vals[cm_a_vals == 0] = np.inf
@@ -225,6 +226,7 @@ class PreprocessedData(object):
 
                 agg_vals = np.minimum(cm_a_vals, cm_b_vals)
                 agg_vals[agg_vals == np.inf] = 0
+
             elif agg_type == "weaker":
                 cm_a_vals = active_cms[:, cm_a_ind, :]
                 cm_a_vals[cm_a_vals == 0] = np.inf
@@ -333,8 +335,8 @@ class PreprocessedData(object):
                     "Public Household Limit",
                 ),
                 (
-                    "Private Indoor Household Limit",
                     "Private Outdoor Household Limit",
+                    "Private Indoor Household Limit",
                     "Private Household Limit",
                 ),
             ]
@@ -502,6 +504,7 @@ class PreprocessedData(object):
         cm_names = np.array(cm_names)[include_npi].tolist()
         self.active_cms = new_active_cms[:, include_npi, :]
         self.CMs = cm_names
+        self.featurized = True
 
     def legacy_featurize(self):
         # everything is hardcoded for now
@@ -613,6 +616,7 @@ class PreprocessedData(object):
                 mask_forward_dates.append(variant_df.loc[region]["date"][0])
             except:
                 mask_forward_dates.append(variant_df.loc[region]["date"])
+
 
         for i in range(len(mask_forward_dates)):
             self.new_cases[
