@@ -609,8 +609,8 @@ class PreprocessedData(object):
         self,
         maximum_fraction_voc=0.1,
         new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
-        extra_days_cases=0,
-        extra_days_deaths=21
+        extra_days_cases=3,
+        extra_days_deaths=12
     ):
         variant_df = pd.read_csv(new_variant_fraction_fname)
         variant_df["date"] = pd.to_datetime(variant_df["date"], format="%Y-%m-%d")
