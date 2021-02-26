@@ -52,7 +52,7 @@ def sample_intervention_effects(nCMs, intervention_prior=None):
 
 def sample_basic_R(nRs, basic_r_prior=None):
     if basic_r_prior is None:
-        basic_r_prior = {"mean": 1.1, "type": "trunc_normal", "variability": 0.3}
+        basic_r_prior = {"mean": 1.5, "type": "trunc_normal", "variability": 0.3}
 
     if basic_r_prior["type"] == "trunc_normal":
         basic_R = numpyro.sample(

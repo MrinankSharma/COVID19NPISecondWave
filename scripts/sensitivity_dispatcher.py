@@ -39,6 +39,14 @@ argparser.add_argument(
     help="Model config used to override default params for **all** requested runs",
 )
 
+argparser.add_argument(
+    "--num_chains",
+    default="default",
+    dest="num_chains",
+    type=int,
+    help="Num chains to use",
+)
+
 args = argparser.parse_args()
 
 
@@ -51,7 +59,7 @@ def run_types_to_commands(run_types, exp_options):
         for rt in run_types:
             exp_rt = exp_options[rt]
             experiment_file = exp_rt["experiment_file"]
-            num_chains = exp_rt["num_chains"]
+            num_chains = args.num_chains
             num_samples = exp_rt["num_samples"]
             num_warmup = exp_rt["num_warmup"]
             exp_tag = exp_rt["experiment_tag"]
@@ -110,12 +118,31 @@ if __name__ == "__main__":
             print(c)
     else:
         processes = set()
+        available_coresets = set()
+
+        for i in range(args.max_parallel_runs):
+            available_coresets.add(f"{i*args.num_chains}-{(i+1)*args.num_chains-1}")
 
         for command in commands:
-            processes.add(subprocess.Popen(command, shell=True))
-            time.sleep(10.0)
+            # grab set of cpus
+            coreset = available_coresets.pop()
+            # unfortunately, the best way to parallelise well is to set processor
+            # affinities.
+            full_cmd = f"taskset -c {coreset} {command}"
+            print(f"Running {full_cmd}")
+            subproc = subprocess.Popen(full_cmd, shell=True)
+            processes.add((coreset, subproc))
+            time.sleep(5.0)
+
             if len(processes) >= args.max_parallel_runs:
+                # wait for a child process to complete
                 os.wait()
-                processes.difference_update(
-                    [p for p in processes if p.poll() is not None]
-                )
+                # if poll returns something, the subprocess has finished
+                finished_processes = [p for p in processes if p[1].poll() is not None]
+
+                # remove from running processes
+                processes.difference_update(finished_processes)
+
+                # add the free cores to be reused
+                for cs, _ in finished_processes:
+                    available_coresets.add(cs)
