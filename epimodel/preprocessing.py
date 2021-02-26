@@ -196,6 +196,7 @@ class PreprocessedData(object):
         gatherings_aggregation="out_in",
         gatherings_aggregation_type="weaker",  # i.e., ban on
         stay_home_all_businesses_aggregation="and",
+        keep_merged_value=False
     ):
         if self.featurized is True:
             print(
@@ -442,6 +443,13 @@ class PreprocessedData(object):
                 thresholds = private_gathering_thresholds
             else:
                 thresholds = public_gathering_thresholds
+
+            if keep_merged_value:
+                new_cm_feature = self.active_cms[:, gath_npi_ind, :]
+                new_active_cms = np.append(
+                    new_active_cms, new_cm_feature.reshape((nRs, 1, nDs)), axis=1
+                )
+                cm_names.append(f"{gath_npi}")
 
             for t in thresholds:
                 new_cm_feature = np.logical_and(
