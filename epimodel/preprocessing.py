@@ -609,6 +609,8 @@ class PreprocessedData(object):
         self,
         maximum_fraction_voc=0.1,
         new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
+        extra_days_cases=0,
+        extra_days_deaths=21
     ):
         variant_df = pd.read_csv(new_variant_fraction_fname)
         variant_df["date"] = pd.to_datetime(variant_df["date"], format="%Y-%m-%d")
@@ -629,11 +631,11 @@ class PreprocessedData(object):
         for i in range(len(mask_forward_dates)):
             self.new_cases[
                 self.Rs.index(regions_to_mask[i]),
-                self.Ds.index(mask_forward_dates[i]) :,
+                self.Ds.index(mask_forward_dates[i]) + extra_days_cases:,
             ] = np.ma.masked
             self.new_deaths[
                 self.Rs.index(regions_to_mask[i]),
-                self.Ds.index(mask_forward_dates[i]) :,
+                self.Ds.index(mask_forward_dates[i]) + extra_days_deaths:,
             ] = np.ma.masked
 
     def mask_reopening(self, option, npis_to_exclude=None):
