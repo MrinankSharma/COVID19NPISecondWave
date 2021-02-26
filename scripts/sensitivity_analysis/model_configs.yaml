@@ -152,6 +152,8 @@ npi_set_8:
      - query: Curfew
        type: includes
 
+
+# need to run from here
 npi_set_9:
   model_kwargs: {}
   featurize_kwargs:
@@ -176,3 +178,99 @@ npi_set_9:
        type: includes
      - query: Gathering
        type: includes
+
+npi_set_10:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+
+npi_set_11:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Extra
+       type:  includes
+
+npi_set_12:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+    public_gathering_thresholds: [1, 6, 30]
+    private_gathering_thresholds: [1, 6, 30]
+
+npi_set_13:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+     - query: Outdoor
+       type: includes
+    public_gathering_thresholds: [1, 6, 30]
+    private_gathering_thresholds: [1, 6, 30]
+
+npi_set_14:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+    gatherings_aggregation: out_in
+
+npi_set_15:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+    gatherings_aggregation: pub_priv
+
+npi_set_16:
+  model_kwargs: {}
+  featurize_kwargs:
+    drop_npi_filter:
+     - query: Retail Closed
+       type:  equals
+    public_gathering_thresholds: [2, 6, 30, 200, 1000]
+    private_gathering_thresholds: [2, 6, 30, 200]
+    household_upper_limit: 7
+
+keep_both:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+stricter:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: stricter
+    household_stays_on: True

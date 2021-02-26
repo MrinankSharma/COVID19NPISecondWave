@@ -1,11 +1,5 @@
 import sys, os
 
-os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=1 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "intra_op_parallelism_threads=1"
-)
-
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
@@ -20,6 +14,10 @@ argparser.add_argument(
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
+
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
 
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
@@ -39,6 +37,9 @@ if __name__ == "__main__":
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
     td = get_tree_depth_from_model_str(args.model_type)
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
 
     base_outpath = generate_base_output_dir(
         args.model_type, args.model_config, args.exp_tag
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
-        chain_method="sequential",
+        chain_method="parallel",
     )
 
     info_dict["model_config_name"] = args.model_config
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {"npis": args.npis}
+    info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

@@ -10,10 +10,10 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--ppool_total_variability",
-    dest="ppool_total_variability",
+    "--seeding_scale",
+    dest="seeding_scale",
     type=float,
-    help="Partial Pooling Total Variability",
+    help="seeding_scale",
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
-    model_build_dict["ppool_total_variability"] = args.ppool_total_variability
+    model_build_dict["seeding_scale"] = args.seeding_scale
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"ppool_total_variability": args.ppool_total_variability}
+    info_dict["exp_config"] = {"seeding_scale": args.seeding_scale}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!

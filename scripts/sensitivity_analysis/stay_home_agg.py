@@ -10,10 +10,10 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--ppool_total_variability",
-    dest="ppool_total_variability",
-    type=float,
-    help="Partial Pooling Total Variability",
+    "--stay_home_agg",
+    dest="stay_home_agg",
+    type=str,
+    help="stay_home_aggregation type",
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
@@ -29,10 +29,10 @@ if __name__ == "__main__":
 
     print("Loading Data")
     data = preprocess_data(get_data_path())
-    data.featurize(**config["featurize_kwargs"])
-    data.mask_new_variant(
-        new_variant_fraction_fname=get_new_variant_path(),
-    )
+    featurize_arg_dict = config["featurize_kwargs"]
+    featurize_arg_dict["stay_home_all_businesses_aggregation"] = args.stay_home_agg
+    data.featurize(**featurize_arg_dict)
+    data.mask_new_variant(new_variant_fraction_fname=get_new_variant_path())
 
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
@@ -53,7 +53,6 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
-    model_build_dict["ppool_total_variability"] = args.ppool_total_variability
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
@@ -76,7 +75,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"ppool_total_variability": args.ppool_total_variability}
+    info_dict["exp_config"] = {"stay_home_agg": args.stay_home_agg}
     info_dict["cm_names"] = data.CMs
 
     # also need to add sensitivity analysis experiment options to the summary dict!
