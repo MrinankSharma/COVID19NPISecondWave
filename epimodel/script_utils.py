@@ -105,7 +105,7 @@ def get_summary_save_keys():
 
 
 def get_data_path():
-    return "data/all_merged_data.csv"
+    return "data/alt_all_merged_data.csv"
 
 
 def get_new_variant_path():

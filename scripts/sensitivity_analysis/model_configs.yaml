@@ -274,3 +274,72 @@ stricter:
     gatherings_aggregation: out_in
     gatherings_aggregation_type: stricter
     household_stays_on: True
+
+
+keep_both_alt_data:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors_alt_data:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker_alt_data:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+stricter_alt_data:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: stricter
+    household_stays_on: True
+
+keep_both_alt_data_mt:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors_alt_data_mt:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker_alt_data_mt:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+stricter_alt_data_mt:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: stricter
+    household_stays_on: True
