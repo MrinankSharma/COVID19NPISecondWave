@@ -41,10 +41,26 @@ argparser.add_argument(
 
 argparser.add_argument(
     "--num_chains",
-    default="default",
+    default=4,
     dest="num_chains",
     type=int,
     help="Num chains to use",
+)
+
+argparser.add_argument(
+    "--num_samples",
+    default=500,
+    dest="num_samples",
+    type=int,
+    help="Num samples to use",
+)
+
+argparser.add_argument(
+    "--num_warmup",
+    default=250,
+    dest="num_warmup",
+    type=int,
+    help="Num warmup samples to use",
 )
 
 args = argparser.parse_args()
@@ -60,8 +76,8 @@ def run_types_to_commands(run_types, exp_options):
             exp_rt = exp_options[rt]
             experiment_file = exp_rt["experiment_file"]
             num_chains = args.num_chains
-            num_samples = exp_rt["num_samples"]
-            num_warmup = exp_rt["num_warmup"]
+            num_samples = args.num_sample
+            num_warmup = args.num_warmup
             exp_tag = exp_rt["experiment_tag"]
             model_type = args.model_type
 
