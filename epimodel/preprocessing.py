@@ -25,7 +25,8 @@ def set_household_limits(active_CMs, household_NPI_index, gathering_NPI_index):
 
 def preprocess_data(
     data_path,
-    last_day="2021-01-09",
+    start_date="2020-08-01",
+    end_date="2021-01-09",
     npi_start_col=3,
     skipcases=8,
     skipdeaths=20,
@@ -44,12 +45,18 @@ def preprocess_data(
         data_path, parse_dates=["Date"], infer_datetime_format=True
     ).set_index(["Area", "Date"])
 
-    if last_day is None:
-        Ds = list(df.index.levels[1])
-    else:
-        Ds = list(df.index.levels[1])
-        last_ts = pd.to_datetime(last_day)
+    Ds = list(df.index.levels[1])
+
+    if end_date is not None:
+        last_ts = pd.to_datetime(end_date)
+        # +1 because we want to include the last day
         Ds = Ds[: (1 + Ds.index(last_ts))]
+
+    if start_date is not None:
+        start_ts = pd.to_datetime(start_date)
+        Ds = Ds[Ds.index(start_ts) :]
+
+    print(f"Processing data from {Ds[0]} to {Ds[-1]}")
 
     Rs = list(df.index.levels[0])
     CMs = list(df.columns[npi_start_col:])
