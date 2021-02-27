@@ -192,11 +192,11 @@ class PreprocessedData(object):
         private_gathering_thresholds=None,
         mask_thresholds=None,
         household_stays_on=True,
-        household_upper_limit=11,
+        household_upper_limit=7,
         gatherings_aggregation="out_in",
-        gatherings_aggregation_type="weaker",  # i.e., ban on
+        gatherings_aggregation_type="weaker",
         stay_home_all_businesses_aggregation="and",
-        keep_merged_value=False
+        keep_merged_value=False,
     ):
         if self.featurized is True:
             print(
@@ -610,7 +610,7 @@ class PreprocessedData(object):
         maximum_fraction_voc=0.1,
         new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
         extra_days_cases=3,
-        extra_days_deaths=12
+        extra_days_deaths=12,
     ):
         variant_df = pd.read_csv(new_variant_fraction_fname)
         variant_df["date"] = pd.to_datetime(variant_df["date"], format="%Y-%m-%d")
@@ -631,11 +631,11 @@ class PreprocessedData(object):
         for i in range(len(mask_forward_dates)):
             self.new_cases[
                 self.Rs.index(regions_to_mask[i]),
-                self.Ds.index(mask_forward_dates[i]) + extra_days_cases:,
+                self.Ds.index(mask_forward_dates[i]) + extra_days_cases :,
             ] = np.ma.masked
             self.new_deaths[
                 self.Rs.index(regions_to_mask[i]),
-                self.Ds.index(mask_forward_dates[i]) + extra_days_deaths:,
+                self.Ds.index(mask_forward_dates[i]) + extra_days_deaths :,
             ] = np.ma.masked
 
     def mask_reopening(self, option, npis_to_exclude=None):
