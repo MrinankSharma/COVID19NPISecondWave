@@ -350,8 +350,7 @@ def_keep_both:
   featurize_kwargs:
     public_gathering_thresholds: [1, 2, 6, 30]
     private_gathering_thresholds: [1, 2, 6, 30]
-    gatherings_aggregation: out_in
-    gatherings_aggregation_type: none
+    gatherings_aggregation: none
     household_stays_on: True
 
 def_drop_outdoors:
