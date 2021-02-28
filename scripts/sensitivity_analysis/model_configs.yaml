@@ -343,3 +343,22 @@ stricter_alt_data_mt:
     gatherings_aggregation: out_in
     gatherings_aggregation_type: stricter
     household_stays_on: True
+
+
+def_keep_both:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30]
+    private_gathering_thresholds: [1, 2, 6, 30]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: none
+    household_stays_on: True
+
+def_drop_outdoors:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30]
+    private_gathering_thresholds: [1, 2, 6, 30]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: drop_outdoors
+    household_stays_on: True
