@@ -76,7 +76,7 @@ def run_types_to_commands(run_types, exp_options):
             exp_rt = exp_options[rt]
             experiment_file = exp_rt["experiment_file"]
             num_chains = args.num_chains
-            num_samples = args.num_sample
+            num_samples = args.num_samples
             num_warmup = args.num_warmup
             exp_tag = exp_rt["experiment_tag"]
             model_type = args.model_type
