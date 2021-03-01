@@ -54,6 +54,9 @@ if __name__ == "__main__":
         "type": str(args.intervention_prior[0]),
         "scale": float(args.intervention_prior[1]),
     }
+    if intervention_prior["type"] == "asymmetric_laplace":
+        intervention_prior["asymmetry"] = 0.5
+
     model_build_dict["intervention_prior"] = intervention_prior
 
     posterior_samples, _, info_dict, _ = run_model(
