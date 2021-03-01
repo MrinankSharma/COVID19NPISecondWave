@@ -35,11 +35,12 @@ if __name__ == "__main__":
         new_variant_fraction_fname=get_new_variant_path(),
     )
 
-    for c_i in args.cs:
-        current_Rs_in_c_i = data.C_indices[c_i]
-        while current_Rs_in_c_i.size > 0:
-            data.remove_region_by_index(current_Rs_in_c_i[0])
-            current_Rs_in_c_i = data.C_indices[c_i]
+    country_indices_to_remove = len(args.cs)
+    countries_to_remove = [data.unique_Cs[i] for i in country_indices_to_remove]
+
+    for country in countries_to_remove:
+        country_index = data.unique_Cs.index(country)
+        data.remove_region_by_index(country_index)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"cs": args.cs}
+    info_dict["exp_config"] = {"cs": args.cs, "country_names": countries_to_remove}
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 
