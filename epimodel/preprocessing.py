@@ -594,8 +594,27 @@ class PreprocessedData(object):
 
     def remove_country_by_index(self, c_i):
        # v lazy
-       for r_i in self.C_indices[c_i]:
-           self.remove_region_by_index(r_i)
+       regions_to_remove = self.C_indices[c_i]
+       r_mask = np.ones(self.nRs, dtype=bool)
+       r_mask[regions_to_remove] = False
+
+       self.active_cms = self.active_cms[r_mask, :, :]
+       self.new_cases = self.new_cases[r_mask, :]
+       self.new_deaths = self.new_deaths[r_mask, :]
+       self.Rs = np.array(self.Rs)[r_mask].tolist()
+       self.Cs = np.array(self.Cs)[r_mask].tolist()
+
+       C_indices = []
+       self.unique_Cs = sorted(list(set(self.Cs)))
+       for uc in self.unique_Cs:
+           a_indices = np.nonzero([uc == c for c in self.Cs])[0]
+           C_indices.append(a_indices)
+
+       self.C_indices = C_indices
+       self.RC_mat = np.zeros((self.nRs, self.nCs))
+       for r_i, c in enumerate(self.Cs):
+           C_ind = self.unique_Cs.index(c)
+           self.RC_mat[r_i, C_ind] = 1
 
     def remove_region_by_index(self, r_i):
         # remove the index
@@ -605,7 +624,7 @@ class PreprocessedData(object):
         self.new_deaths = np.delete(self.new_deaths, r_i, axis=0)
         self.active_cms = np.delete(self.active_cms, r_i, axis=0)
 
-        # self.unique_Cs = sorted(list(set(self.Cs)))
+        self.unique_Cs = sorted(list(set(self.Cs)))
         C_indices = []
         for uc in self.unique_Cs:
             a_indices = np.nonzero([uc == c for c in self.Cs])[0]
@@ -617,6 +636,13 @@ class PreprocessedData(object):
         for r_i, c in enumerate(self.Cs):
             C_ind = self.unique_Cs.index(c)
             self.RC_mat[r_i, C_ind] = 1
+
+        print(self.nRs)
+        print(self.nDs)
+        print(self.nCs)
+        print(self.new_cases.shape)
+        print(self.new_deaths.shape)
+        print(self.active_cms.shape)
 
     def mask_new_variant(
         self,
