@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     for country in countries_to_remove:
         country_index = data.unique_Cs.index(country)
-        data.remove_region_by_index(country_index)
+        data.remove_country_by_index(country_index)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
