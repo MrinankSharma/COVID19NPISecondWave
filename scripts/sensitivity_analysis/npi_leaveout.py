@@ -37,7 +37,7 @@ if __name__ == "__main__":
                 f"You tried to remove NPI index {npi}, but there are only {data.nCMs} npis"
             )
             sys.exit()
-        data.drop_npi_by_index()
+        data.drop_npi_by_index(npi)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)

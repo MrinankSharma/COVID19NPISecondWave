@@ -53,15 +53,7 @@ if __name__ == "__main__":
     summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
-    basic_R_prior = {
-        "mean": args.basic_R_mean,
-        "type": "trunc_normal",
-        "variability": args.basic_R_scale,
-    }
-
     model_build_dict = config["model_kwargs"]
-    model_build_dict["basic_R_prior"] = basic_R_prior
-
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,
