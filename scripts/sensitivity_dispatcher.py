@@ -40,6 +40,14 @@ argparser.add_argument(
 )
 
 argparser.add_argument(
+    "--exclude_core_indices",
+    dest="exclude_core_indices",
+    type=int,
+    nargs="+",
+    help="indices removed",
+)
+
+argparser.add_argument(
     "--num_chains",
     default=4,
     dest="num_chains",
@@ -137,7 +145,15 @@ if __name__ == "__main__":
         available_coresets = set()
 
         for i in range(args.max_parallel_runs):
-            available_coresets.add(f"{i*args.num_chains}-{(i+1)*args.num_chains-1}")
+            start_core = i * args.num_chains
+            end_core = (i + 1) * args.num_chains - 1
+
+            if args.exclude_cores_indices:
+                for j in range(start_core, end_core + 1):
+                    if j in args.exclude_core_indices:
+                        continue
+
+            available_coresets.add(f"{start_core}-{end_core}")
 
         for command in commands:
             # grab set of cpus

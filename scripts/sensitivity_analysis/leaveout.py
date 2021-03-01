@@ -35,8 +35,7 @@ if __name__ == "__main__":
         new_variant_fraction_fname=get_new_variant_path(),
     )
 
-    country_indices_to_remove = len(args.cs)
-    countries_to_remove = [data.unique_Cs[i] for i in country_indices_to_remove]
+    countries_to_remove = [data.unique_Cs[i] for i in args.cs]
 
     for country in countries_to_remove:
         country_index = data.unique_Cs.index(country)
