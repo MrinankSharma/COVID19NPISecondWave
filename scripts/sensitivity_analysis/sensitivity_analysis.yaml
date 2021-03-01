@@ -33,7 +33,6 @@ basic_R_prior_mean:
       - 1.5
       - 1.3
       - 1.1
-      # - 1.1 (default)
       - 1.7
 
 basic_R_prior_scale:
@@ -43,7 +42,6 @@ basic_R_prior_scale:
     basic_R_scale:
       - 0.1
       - 0.2
-      # - 0.3
       - 0.4
     basic_R_mean:
       - 1.5
@@ -125,7 +123,7 @@ infection_noise_scale:
       - 9.
 
 intervention_prior:
-  experiment_file: intervention_perior.py
+  experiment_file: intervention_prior.py
   experiment_tag: intervention_prior
   args:
     intervention_prior:

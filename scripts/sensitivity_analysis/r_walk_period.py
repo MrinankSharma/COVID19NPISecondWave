@@ -12,7 +12,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument(
     "--r_walk_period",
     dest="r_walk_period",
-    type=float,
+    type=int,
     help="r_walk_period",
 )
 add_argparse_arguments(argparser)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
-    model_build_dict["r_walk_period"] = args.r_walk_period
+    model_build_dict["r_walk_period"] = int(args.r_walk_period)
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,

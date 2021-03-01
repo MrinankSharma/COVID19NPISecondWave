@@ -32,7 +32,12 @@ if __name__ == "__main__":
     ep.populate_region_delays(data)
 
     for npi in args.npis:
-        data.remove_npi_by_index()
+        if npi > data.nCMs:
+            print(
+                f"You tried to remove NPI index {npi}, but there are only {data.nCMs} npis"
+            )
+            sys.exit()
+        data.drop_npi_by_index()
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)

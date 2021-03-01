@@ -33,7 +33,7 @@ if __name__ == "__main__":
     end_date = args.window_of_analysis[1]
 
     print("Loading Data")
-    data = preprocess_data(get_data_path(), start_day=start_date, end_day=end_date)
+    data = preprocess_data(get_data_path(), start_date=start_date, end_date=end_date)
     data.featurize(**config["featurize_kwargs"])
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),

@@ -12,7 +12,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument(
     "--n_days_seeding",
     dest="n_days_seeding",
-    type=float,
+    type=int,
     help="n_days_seeding",
 )
 add_argparse_arguments(argparser)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
-    model_build_dict["n_days_seeding"] = args.n_days_seeding
+    model_build_dict["n_days_seeding"] = int(args.n_days_seeding)
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
