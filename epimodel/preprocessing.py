@@ -592,14 +592,20 @@ class PreprocessedData(object):
 
         return mask_start
 
+    def remove_country_by_index(self, c_i):
+       # v lazy
+       for r_i in self.C_indices[c_i]:
+           self.remove_region_by_index(r_i)
+
     def remove_region_by_index(self, r_i):
+        # remove the index
         del self.Rs[r_i]
         del self.Cs[r_i]
         self.new_cases = np.delete(self.new_cases, r_i, axis=0)
         self.new_deaths = np.delete(self.new_deaths, r_i, axis=0)
         self.active_cms = np.delete(self.active_cms, r_i, axis=0)
 
-        self.unique_Cs = sorted(list(set(self.Cs)))
+        # self.unique_Cs = sorted(list(set(self.Cs)))
         C_indices = []
         for uc in self.unique_Cs:
             a_indices = np.nonzero([uc == c for c in self.Cs])[0]
