@@ -685,3 +685,8 @@ class PreprocessedData(object):
                 else:
                     days_masked_npi.append(0)
             self.number_masked.append(max(days_masked_npi))
+
+    def mask_from_9th_jan(self, extra_days_cases=2, extra_days_deaths=10):
+        ninth_jan_index = list(self.Ds).index(pd.to_datetime('2021-01-09'))
+        self.new_cases[:, ninth_jan_index + extra_days_cases:] = np.ma.masked
+        self.new_deaths[:, ninth_jan_index + extra_days_deaths:] = np.ma.masked
