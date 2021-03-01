@@ -148,7 +148,7 @@ if __name__ == "__main__":
             start_core = i * args.num_chains
             end_core = (i + 1) * args.num_chains - 1
 
-            if args.exclude_cores_indices:
+            if args.exclude_core_indices:
                 for j in range(start_core, end_core + 1):
                     if j in args.exclude_core_indices:
                         continue
