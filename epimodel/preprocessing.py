@@ -249,7 +249,7 @@ class PreprocessedData(object):
         if drop_npi_filter is None:
             drop_npi_filter = [
                 {"query": "Retail Closed", "type": "equals"},
-                #{"query": "Childcare", "type": "includes"}
+                # {"query": "Childcare", "type": "includes"}
             ]
 
         if public_gathering_thresholds is None:
