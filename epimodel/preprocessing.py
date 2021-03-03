@@ -200,7 +200,7 @@ class PreprocessedData(object):
         mask_thresholds=None,
         household_stays_on=True,
         household_upper_limit=7,
-        gatherings_aggregation="out_in",
+        gatherings_aggregation="drop_outdoor",
         gatherings_aggregation_type="weaker",
         stay_home_all_businesses_aggregation="and",
         keep_merged_value=False,
@@ -249,13 +249,14 @@ class PreprocessedData(object):
         if drop_npi_filter is None:
             drop_npi_filter = [
                 {"query": "Retail Closed", "type": "equals"},
+                #{"query": "Childcare", "type": "includes"}
             ]
 
         if public_gathering_thresholds is None:
-            public_gathering_thresholds = [1, 6, 30, 200]
+            public_gathering_thresholds = [1, 2, 6, 30]
 
         if private_gathering_thresholds is None:
-            private_gathering_thresholds = [1, 6, 30, 200]
+            private_gathering_thresholds = [1, 2, 6, 30]
 
         if mask_thresholds is None:
             mask_thresholds = [3]
@@ -520,66 +521,6 @@ class PreprocessedData(object):
         self.active_cms = new_active_cms[:, include_npi, :]
         self.CMs = cm_names
         self.featurized = True
-        print(f"generated {self.CMs} are the CM set")
-
-    def legacy_featurize(self):
-        # everything is hardcoded for now
-        gathering_thresholds = [6, 30]
-        mask_thresholds = [3]
-
-        gathering_npis = [
-            "Public Indoor Gathering Person Limit",
-            "Private Indoor Gathering Person Limit",
-        ]
-        binary_npis = [
-            "Some Face-to-Face Businesses Closed",
-            "Gastronomy Closed",
-            "Leisure Venues Closed",
-            "All Face-to-Face Businesses Closed",
-            "Curfew",
-            "Childcare Closed",
-            "Primary Schools Closed",
-            "Secondary Schools Closed",
-            "Universities Away",
-        ]
-        mask_npi = "Mandatory Mask Wearing"
-
-        nCMs = (
-            len(binary_npis)
-            + len(mask_thresholds)
-            + len(gathering_npis) * len(gathering_thresholds)
-        )
-
-        nRs, _, nDs = self.active_cms.shape
-
-        new_active_cms = np.zeros((nRs, nCMs, nDs))
-
-        cm_index = 0
-        cm_names = []
-        for bin_npi in binary_npis:
-            old_index = self.CMs.index(bin_npi)
-            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :]
-            cm_index += 1
-            cm_names.append(bin_npi)
-
-        for gat_npi in gathering_npis:
-            for t in gathering_thresholds:
-                old_index = self.CMs.index(gat_npi)
-                new_active_cms[:, cm_index, :] = np.logical_and(
-                    self.active_cms[:, old_index, :] > 0,
-                    self.active_cms[:, old_index, :] < t + 1,
-                )
-                cm_names.append(f"{gat_npi} < {t}")
-                cm_index += 1
-
-        for t in mask_thresholds:
-            old_index = self.CMs.index(mask_npi)
-            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :] > t - 1
-            cm_names.append(f"{mask_npi} > {t}")
-            cm_index += 1
-
-        self.CMs = cm_names
-        self.active_cms = new_active_cms
 
     def mask_region_by_index(self, region_index, nz_case_days_shown=60):
         mask_start = np.nonzero(
@@ -725,7 +666,11 @@ class PreprocessedData(object):
                     days_masked_npi.append(0)
             self.number_masked.append(max(days_masked_npi))
 
-    def mask_from_9th_jan(self, extra_days_cases=2, extra_days_deaths=10):
-        ninth_jan_index = list(self.Ds).index(pd.to_datetime('2021-01-09'))
-        self.new_cases[:, ninth_jan_index + extra_days_cases:] = np.ma.masked
-        self.new_deaths[:, ninth_jan_index + extra_days_deaths:] = np.ma.masked
+    def mask_from_date(self, date_str, extra_days_cases=2, extra_days_deaths=10):
+        dt = pd.to_datetime(date_str)
+        if dt not in self.Ds:
+            raise ValueError("Requested date_str not in Ds")
+
+        date_index = self.Ds.index(dt)
+        self.new_cases[:, date_index + extra_days_cases :] = np.ma.masked
+        self.new_deaths[:, date_index + extra_days_deaths :] = np.ma.masked
