@@ -15,6 +15,13 @@ argparser.add_argument(
     type=str,
     help="gatherings aggregation. either stricter or weaker",
 )
+argparser.add_argument(
+    "--gatherings_aggregation",
+    dest="gatherings_aggregation",
+    type=str,
+    help="gatherings aggregation. either none, out_in, drop_outdoor",
+)
+
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
@@ -31,6 +38,7 @@ if __name__ == "__main__":
     data = preprocess_data(get_data_path())
     featurize_arg_dict = config["featurize_kwargs"]
     featurize_arg_dict["gatherings_aggregation_type"] = args.gatherings_aggregation_type
+    featurize_arg_dict["gatherings_aggregation"] = args.gatherings_aggregation
     data.featurize(**featurize_arg_dict)
     data.mask_new_variant(new_variant_fraction_fname=get_new_variant_path())
     print("Loading EpiParam")
@@ -72,7 +80,8 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {
-        "gatherings_aggregation_type": args.gatherings_aggregation_type
+        "gatherings_aggregation_type": args.gatherings_aggregation_type,
+        "gatherings_aggregation": args.gatherings_aggregation,
     }
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()

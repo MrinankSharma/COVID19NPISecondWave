@@ -50,9 +50,9 @@ if __name__ == "__main__":
     ep = EpidemiologicalParameters()
 
     # shift delays
-    ep.generation_interval["mean"] = ep.generation_interval[
-        "mean"
-    ] = args.gen_int_mean_shift
+    ep.generation_interval["mean"] = (
+        ep.generation_interval["mean"] + args.gen_int_mean_shift
+    )
 
     for _, d in ep.infection_to_reporting_delays.items():
         d["mean"] = d["mean"] + args.cases_delay_mean_shift
@@ -60,6 +60,7 @@ if __name__ == "__main__":
     for _, d in ep.infection_to_fatality_delays.items():
         d["mean"] = d["mean"] + args.death_delay_mean_shift
 
+    ep.regenerate_delays()
     ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)

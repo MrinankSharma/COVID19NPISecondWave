@@ -10,7 +10,7 @@ argparser.add_argument(
     "--max_parallel_runs",
     dest="max_parallel_runs",
     type=int,
-    default=1,
+    default=24,
     help="Number of processes to spawn",
 )
 argparser.add_argument(
@@ -57,7 +57,7 @@ argparser.add_argument(
 
 argparser.add_argument(
     "--num_samples",
-    default=500,
+    default=1250,
     dest="num_samples",
     type=int,
     help="Num samples to use",
