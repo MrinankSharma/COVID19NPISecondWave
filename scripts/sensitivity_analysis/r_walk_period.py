@@ -6,15 +6,22 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
-import numpyro
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
-
+argparser.add_argument(
+    "--r_walk_period",
+    dest="r_walk_period",
+    type=int,
+    help="r_walk_period",
+)
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
 numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -26,6 +33,7 @@ if __name__ == "__main__":
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
     )
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
@@ -42,6 +50,7 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
+    model_build_dict["r_walk_period"] = int(args.r_walk_period)
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
@@ -64,7 +73,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {}
+    info_dict["exp_config"] = {"r_walk_period": args.r_walk_period}
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 

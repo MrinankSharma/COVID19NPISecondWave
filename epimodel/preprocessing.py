@@ -25,7 +25,8 @@ def set_household_limits(active_CMs, household_NPI_index, gathering_NPI_index):
 
 def preprocess_data(
     data_path,
-    last_day="2021-01-09",
+    start_date="2020-08-01",
+    end_date="2021-01-09",
     npi_start_col=3,
     skipcases=8,
     skipdeaths=20,
@@ -44,12 +45,18 @@ def preprocess_data(
         data_path, parse_dates=["Date"], infer_datetime_format=True
     ).set_index(["Area", "Date"])
 
-    if last_day is None:
-        Ds = list(df.index.levels[1])
-    else:
-        Ds = list(df.index.levels[1])
-        last_ts = pd.to_datetime(last_day)
+    Ds = list(df.index.levels[1])
+
+    if end_date is not None:
+        last_ts = pd.to_datetime(end_date)
+        # +1 because we want to include the last day
         Ds = Ds[: (1 + Ds.index(last_ts))]
+
+    if start_date is not None:
+        start_ts = pd.to_datetime(start_date)
+        Ds = Ds[Ds.index(start_ts) :]
+
+    print(f"Processing data from {Ds[0]} to {Ds[-1]}")
 
     Rs = list(df.index.levels[0])
     CMs = list(df.columns[npi_start_col:])
@@ -159,6 +166,8 @@ class PreprocessedData(object):
             C_ind = self.unique_Cs.index(c)
             self.RC_mat[r_i, C_ind] = 1
 
+        self.featurized = False
+
     @property
     def nCMs(self):
         return len(self.CMs)
@@ -189,40 +198,24 @@ class PreprocessedData(object):
         public_gathering_thresholds=None,
         private_gathering_thresholds=None,
         mask_thresholds=None,
-        alt_household=False,
+        household_stays_on=True,
+        household_upper_limit=7,
+        gatherings_aggregation="drop_outdoor",
+        gatherings_aggregation_type="weaker",
+        stay_home_all_businesses_aggregation="and",
+        keep_merged_value=False,
     ):
-
-        if drop_npi_filter is None:
-            drop_npi_filter = [
-                {"query": "Retail Closed", "type": "equals"},
-                {"query": "Outdoor", "type": "includes"},
-            ]
-
-        if public_gathering_thresholds is None:
-            public_gathering_thresholds = [1, 6, 10, 30, 200, 1000]
-
-        if private_gathering_thresholds is None:
-            private_gathering_thresholds = [1, 6, 10, 30, 200]
-
-        if mask_thresholds is None:
-            mask_thresholds = [3]
-
-        gathering_household_npi_pairs = [
-            ("Public Outdoor Gathering Person Limit", "Public Outdoor Household Limit"),
-            ("Public Indoor Gathering Person Limit", "Public Indoor Household Limit"),
-            (
-                "Private Outdoor Gathering Person Limit",
-                "Private Outdoor Household Limit",
-            ),
-            ("Private Indoor Gathering Person Limit", "Private Indoor Household Limit"),
-        ]
+        if self.featurized is True:
+            print(
+                "Data has already been featurized. New featurisation will not take place"
+            )
+            return
 
         binary_npis = [
             "Some Face-to-Face Businesses Closed",
             "Gastronomy Closed",
             "Leisure Venues Closed",
             "Retail Closed",
-            "All Face-to-Face Businesses Closed",
             "Stay at Home Order",
             "Curfew",
             "Childcare Closed",
@@ -230,6 +223,210 @@ class PreprocessedData(object):
             "Secondary Schools Closed",
             "Universities Away",
         ]
+
+        def aggregate_numerical_npis(agg_type, cm_a_ind, cm_b_ind, active_cms_in):
+            active_cms = np.copy(active_cms_in)
+            if agg_type == "stricter":
+                cm_a_vals = active_cms[:, cm_a_ind, :]
+                cm_a_vals[cm_a_vals == 0] = np.inf
+                cm_b_vals = active_cms[:, cm_b_ind, :]
+                cm_b_vals[cm_b_vals == 0] = np.inf
+
+                agg_vals = np.minimum(cm_a_vals, cm_b_vals)
+                agg_vals[agg_vals == np.inf] = 0
+
+            elif agg_type == "weaker":
+                cm_a_vals = active_cms[:, cm_a_ind, :]
+                cm_a_vals[cm_a_vals == 0] = np.inf
+                cm_b_vals = active_cms[:, cm_b_ind, :]
+                cm_b_vals[cm_b_vals == 0] = np.inf
+
+                agg_vals = np.maximum(cm_a_vals, cm_b_vals)
+                agg_vals[agg_vals == np.inf] = 0
+
+            return agg_vals
+
+        if drop_npi_filter is None:
+            drop_npi_filter = [
+                {"query": "Retail Closed", "type": "equals"},
+                # {"query": "Childcare", "type": "includes"}
+            ]
+
+        if public_gathering_thresholds is None:
+            public_gathering_thresholds = [1, 2, 6, 30]
+
+        if private_gathering_thresholds is None:
+            private_gathering_thresholds = [1, 2, 6, 30]
+
+        if mask_thresholds is None:
+            mask_thresholds = [3]
+
+        if gatherings_aggregation is None or gatherings_aggregation == "none":
+            agg = None
+
+            gathering_household_npi_pairs = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Public Outdoor Household Limit",
+                ),
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Public Indoor Household Limit",
+                ),
+                (
+                    "Private Outdoor Gathering Person Limit",
+                    "Private Outdoor Household Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Indoor Household Limit",
+                ),
+            ]
+
+        elif gatherings_aggregation == "pub_priv":
+            agg = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Private Outdoor Gathering Person Limit",
+                    "Outdoor Gathering Person Limit",
+                ),
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Private Indoor Gathering Person Limit",
+                    "Indoor Gathering Person Limit",
+                ),
+                (
+                    "Public Outdoor Household Limit",
+                    "Private Outdoor Household Limit",
+                    "Outdoor Household Limit",
+                ),
+                (
+                    "Public Indoor Household Limit",
+                    "Private Indoor Household Limit",
+                    "Indoor Household Limit",
+                ),
+            ]
+
+            new_active_cms = np.copy(self.active_cms)
+            for cm_a, cm_b, new_name in agg:
+                # i need to properly deal with the zeros now too
+                cm_a_ind = self.CMs.index(cm_a)
+                cm_b_ind = self.CMs.index(cm_b)
+
+                agg_vals = aggregate_numerical_npis(
+                    gatherings_aggregation_type, cm_a_ind, cm_b_ind, self.active_cms
+                )
+
+                new_active_cms[:, cm_a_ind, :] = agg_vals
+                self.CMs[cm_a_ind] = new_name
+
+            gathering_household_npi_pairs = [
+                ("Outdoor Gathering Person Limit", "Outdoor Household Limit"),
+                ("Indoor Gathering Person Limit", "Indoor Household Limit"),
+            ]
+            self.active_cms = new_active_cms
+
+        elif gatherings_aggregation == "out_in":
+            agg = [
+                (
+                    "Public Outdoor Gathering Person Limit",
+                    "Public Indoor Gathering Person Limit",
+                    "Public Gathering Person Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Outdoor Gathering Person Limit",
+                    "Private Gathering Person Limit",
+                ),
+                (
+                    "Public Outdoor Household Limit",
+                    "Public Indoor Household Limit",
+                    "Public Household Limit",
+                ),
+                (
+                    "Private Outdoor Household Limit",
+                    "Private Indoor Household Limit",
+                    "Private Household Limit",
+                ),
+            ]
+
+            new_active_cms = np.copy(self.active_cms)
+            for cm_a, cm_b, new_name in agg:
+                # i need to properly deal with the zeros now too
+                cm_a_ind = self.CMs.index(cm_a)
+                cm_b_ind = self.CMs.index(cm_b)
+
+                agg_vals = aggregate_numerical_npis(
+                    gatherings_aggregation_type, cm_a_ind, cm_b_ind, self.active_cms
+                )
+
+                new_active_cms[:, cm_a_ind, :] = agg_vals
+                self.CMs[cm_a_ind] = new_name
+
+            gathering_household_npi_pairs = [
+                ("Public Gathering Person Limit", "Public Household Limit"),
+                ("Private Gathering Person Limit", "Private Household Limit"),
+            ]
+            self.active_cms = new_active_cms
+
+        elif gatherings_aggregation == "drop_outdoor":
+            drop_npi_filter.append({"query": "Outdoor", "type": "includes"})
+
+            gathering_household_npi_pairs = [
+                (
+                    "Public Indoor Gathering Person Limit",
+                    "Public Indoor Household Limit",
+                ),
+                (
+                    "Private Indoor Gathering Person Limit",
+                    "Private Indoor Household Limit",
+                ),
+            ]
+
+            print(
+                "Note: under drop_outdoor gathering aggregation, the gatherings_aggregation_type is disregarded"
+            )
+        else:
+            raise ValueError(
+                "gatherings_aggregation must be in [drop_outdoor, out_in, pub_priv, none]"
+            )
+
+        if (
+            stay_home_all_businesses_aggregation is None
+            or stay_home_all_businesses_aggregation == "none"
+        ):
+            # i.e.., don't aggregate
+            pass
+        elif stay_home_all_businesses_aggregation == "and":
+            stay_home_ind = self.CMs.index("Stay at Home Order")
+            all_buss_ind = self.CMs.index("All Face-to-Face Businesses Closed")
+
+            self.CMs[all_buss_ind] = "Stay at Home Order AND All F2F Businesses Closed"
+            binary_npis.append(self.CMs[all_buss_ind])
+            self.active_cms[:, all_buss_ind, :] = np.logical_and(
+                self.active_cms[:, stay_home_ind, :],
+                self.active_cms[:, all_buss_ind, :],
+            )
+            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
+
+        elif stay_home_all_businesses_aggregation == "or":
+            stay_home_ind = self.CMs.index("Stay at Home Order")
+            all_buss_ind = self.CMs.index("All Face-to-Face Businesses Closed")
+
+            self.CMs[all_buss_ind] = "Stay at Home Order OR All F2F Businesses Closed"
+            binary_npis.append(self.CMs[all_buss_ind])
+            self.active_cms[:, all_buss_ind, :] = np.logical_or(
+                self.active_cms[:, stay_home_ind, :],
+                self.active_cms[:, all_buss_ind, :],
+            )
+            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
+
+        elif stay_home_all_businesses_aggregation == "drop_stay_home":
+            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
+        else:
+            raise ValueError(
+                "stay_home_all_businesses_aggregation must be in [none, and, or, drop_stay_home]"
+            )
 
         mask_npi = "Mandatory Mask Wearing"
 
@@ -255,6 +452,13 @@ class PreprocessedData(object):
             else:
                 thresholds = public_gathering_thresholds
 
+            if keep_merged_value:
+                new_cm_feature = self.active_cms[:, gath_npi_ind, :]
+                new_active_cms = np.append(
+                    new_active_cms, new_cm_feature.reshape((nRs, 1, nDs)), axis=1
+                )
+                cm_names.append(f"{gath_npi}")
+
             for t in thresholds:
                 new_cm_feature = np.logical_and(
                     self.active_cms[:, gath_npi_ind, :] > 0,
@@ -265,24 +469,28 @@ class PreprocessedData(object):
                 )
                 cm_names.append(f"{gath_npi} - {t}")
 
-            if alt_household:
-                # i.e., the household feature is "is there an additional household limit?"
+            if household_stays_on:
+                # if there is a gathering ban under 10 people, and the household limit is 2
+                is_relevant_gath_ban = np.logical_and(
+                    self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
+                    self.active_cms[:, gath_npi_ind, :] > 0,
+                )
                 household_feature = np.logical_and(
-                    self.active_cms[:, gath_npi_ind, :] < 11,
-                    self.active_cms[:, hshold_npi_ind, :] == 2,
+                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] == 2
                 )
                 new_active_cms = np.append(
                     new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
                 )
                 cm_names.append(f"Extra {hshold_npi}")
             else:
-                # i.e., the household feature is "is there an additional household limit?"
-                household_feature = np.logical_and(
+                # i.e., is there a ban between 2 and the upper limit (default between 3 and 10 inclusive)
+                # and an additional household limit of 2 people on that.
+                is_relevant_gath_ban = np.logical_and(
                     self.active_cms[:, gath_npi_ind, :] > 2,
-                    self.active_cms[:, gath_npi_ind, :] < 11,
+                    self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
                 )
                 household_feature = np.logical_and(
-                    household_feature, self.active_cms[:, hshold_npi_ind, :] == 2
+                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] == 2
                 )
                 new_active_cms = np.append(
                     new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
@@ -312,65 +520,7 @@ class PreprocessedData(object):
         cm_names = np.array(cm_names)[include_npi].tolist()
         self.active_cms = new_active_cms[:, include_npi, :]
         self.CMs = cm_names
-
-    def legacy_featurize(self):
-        # everything is hardcoded for now
-        gathering_thresholds = [6, 30]
-        mask_thresholds = [3]
-
-        gathering_npis = [
-            "Public Indoor Gathering Person Limit",
-            "Private Indoor Gathering Person Limit",
-        ]
-        binary_npis = [
-            "Some Face-to-Face Businesses Closed",
-            "Gastronomy Closed",
-            "Leisure Venues Closed",
-            "All Face-to-Face Businesses Closed",
-            "Curfew",
-            "Childcare Closed",
-            "Primary Schools Closed",
-            "Secondary Schools Closed",
-            "Universities Away",
-        ]
-        mask_npi = "Mandatory Mask Wearing"
-
-        nCMs = (
-            len(binary_npis)
-            + len(mask_thresholds)
-            + len(gathering_npis) * len(gathering_thresholds)
-        )
-
-        nRs, _, nDs = self.active_cms.shape
-
-        new_active_cms = np.zeros((nRs, nCMs, nDs))
-
-        cm_index = 0
-        cm_names = []
-        for bin_npi in binary_npis:
-            old_index = self.CMs.index(bin_npi)
-            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :]
-            cm_index += 1
-            cm_names.append(bin_npi)
-
-        for gat_npi in gathering_npis:
-            for t in gathering_thresholds:
-                old_index = self.CMs.index(gat_npi)
-                new_active_cms[:, cm_index, :] = np.logical_and(
-                    self.active_cms[:, old_index, :] > 0,
-                    self.active_cms[:, old_index, :] < t + 1,
-                )
-                cm_names.append(f"{gat_npi} < {t}")
-                cm_index += 1
-
-        for t in mask_thresholds:
-            old_index = self.CMs.index(mask_npi)
-            new_active_cms[:, cm_index, :] = self.active_cms[:, old_index, :] > t - 1
-            cm_names.append(f"{mask_npi} > {t}")
-            cm_index += 1
-
-        self.CMs = cm_names
-        self.active_cms = new_active_cms
+        self.featurized = True
 
     def mask_region_by_index(self, region_index, nz_case_days_shown=60):
         mask_start = np.nonzero(
@@ -383,7 +533,32 @@ class PreprocessedData(object):
 
         return mask_start
 
+    def remove_country_by_index(self, c_i):
+        # v lazy
+        regions_to_remove = self.C_indices[c_i]
+        r_mask = np.ones(self.nRs, dtype=bool)
+        r_mask[regions_to_remove] = False
+
+        self.active_cms = self.active_cms[r_mask, :, :]
+        self.new_cases = self.new_cases[r_mask, :]
+        self.new_deaths = self.new_deaths[r_mask, :]
+        self.Rs = np.array(self.Rs)[r_mask].tolist()
+        self.Cs = np.array(self.Cs)[r_mask].tolist()
+
+        C_indices = []
+        self.unique_Cs = sorted(list(set(self.Cs)))
+        for uc in self.unique_Cs:
+            a_indices = np.nonzero([uc == c for c in self.Cs])[0]
+            C_indices.append(a_indices)
+
+        self.C_indices = C_indices
+        self.RC_mat = np.zeros((self.nRs, self.nCs))
+        for r_i, c in enumerate(self.Cs):
+            C_ind = self.unique_Cs.index(c)
+            self.RC_mat[r_i, C_ind] = 1
+
     def remove_region_by_index(self, r_i):
+        # remove the index
         del self.Rs[r_i]
         del self.Cs[r_i]
         self.new_cases = np.delete(self.new_cases, r_i, axis=0)
@@ -403,20 +578,99 @@ class PreprocessedData(object):
             C_ind = self.unique_Cs.index(c)
             self.RC_mat[r_i, C_ind] = 1
 
-    def mask_new_variant(self, fraction = 0.1):
-        variant_df = pd.read_csv('../data/nuts3_new_variant_fraction.csv')
-        variant_df['date'] = pd.to_datetime(variant_df['date'], format = '%Y-%m-%d')
-        variant_df['nuts3'] = variant_df['nuts3'].replace(['Buckinghamshire'],'Buckinghamshire CC')
+        print(self.nRs)
+        print(self.nDs)
+        print(self.nCs)
+        print(self.new_cases.shape)
+        print(self.new_deaths.shape)
+        print(self.active_cms.shape)
 
-        variant_df = variant_df[variant_df['frac'] > fraction]
-        regions_to_mask = np.unique(variant_df['nuts3'])
-        variant_df = variant_df.set_index(['nuts3'])
+    def mask_new_variant(
+        self,
+        maximum_fraction_voc=0.1,
+        new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
+        extra_days_cases=3,
+        extra_days_deaths=12,
+    ):
+        variant_df = pd.read_csv(new_variant_fraction_fname)
+        variant_df["date"] = pd.to_datetime(variant_df["date"], format="%Y-%m-%d")
+        variant_df["nuts3"] = variant_df["nuts3"].replace(
+            ["Buckinghamshire"], "Buckinghamshire CC"
+        )
+
+        variant_df = variant_df[variant_df["frac"] > maximum_fraction_voc]
+        regions_to_mask = np.unique(variant_df["nuts3"])
+        variant_df = variant_df.set_index(["nuts3"])
         mask_forward_dates = []
         for region in regions_to_mask:
             try:
-                mask_forward_dates.append(variant_df.loc[region]['date'][0])
+                mask_forward_dates.append(variant_df.loc[region]["date"][0])
             except:
-                mask_forward_dates.append(variant_df.loc[region]['date'])
+                mask_forward_dates.append(variant_df.loc[region]["date"])
+
         for i in range(len(mask_forward_dates)):
-            self.new_cases[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
-            self.new_deaths[self.Rs.index(regions_to_mask[i]), self.Ds.index(mask_forward_dates[i]):] = np.ma.masked
+            self.new_cases[
+                self.Rs.index(regions_to_mask[i]),
+                self.Ds.index(mask_forward_dates[i]) + extra_days_cases :,
+            ] = np.ma.masked
+            self.new_deaths[
+                self.Rs.index(regions_to_mask[i]),
+                self.Ds.index(mask_forward_dates[i]) + extra_days_deaths :,
+            ] = np.ma.masked
+
+    def mask_reopening(self, option, npis_to_exclude=None):
+        if npis_to_exclude is None:
+            npis_to_exclude = [
+                "Childcare Closed",
+                "Primary Schools Closed",
+                "Secondary Schools Closed",
+                "Universities Away",
+            ]
+        npis_to_include = [CM for CM in self.CMs if CM not in npis_to_exclude]
+
+        active_CMs = self.active_cms
+        active_CMs = (active_CMs > 0).astype(int)
+        changes = []
+        for i in range(active_CMs.shape[0]):
+            change = np.zeros((len(self.CMs), len(self.Ds)))
+            change[:, 1:] = active_CMs[i, :, 1:] - active_CMs[i, :, :-1]
+            changes.append(change)
+        self.number_masked = []
+        for r in range(active_CMs.shape[0]):
+            days_masked_npi = []
+            for npi in npis_to_include:
+                npi_index = self.CMs.index(npi)
+                changes_region = changes[r][npi_index]
+                starts = list(np.where(changes_region == -1)[0])
+                ends = list(np.where(changes_region == 1)[0])
+                # print(starts, ends)
+                if len(starts) > 0:
+                    if len(ends) > 0:
+                        if ends[-1] < starts[-1]:
+                            ends.append(len(self.Ds) - 1)
+                        if ends[0] < starts[0]:
+                            ends = ends[1:]
+                    else:
+                        ends.append(len(self.Ds) - 1)
+                    # print(starts, ends)
+                    for i in range(len(starts)):
+                        if option == 3:
+                            days_masked_npi.append(ends[i] - starts[i])
+                            self.new_cases[r, starts[i] : ends[i]] = np.ma.masked
+                            self.new_deaths[r, starts[i] : ends[i]] = np.ma.masked
+                        if option == 4:
+                            days_masked_npi.append(len(self.Ds) - 1 - starts[i])
+                            self.new_cases[r, starts[i] :] = np.ma.masked
+                            self.new_deaths[r, starts[i] :] = np.ma.masked
+                else:
+                    days_masked_npi.append(0)
+            self.number_masked.append(max(days_masked_npi))
+
+    def mask_from_date(self, date_str, extra_days_cases=2, extra_days_deaths=10):
+        dt = pd.to_datetime(date_str)
+        if dt not in self.Ds:
+            raise ValueError("Requested date_str not in Ds")
+
+        date_index = self.Ds.index(dt)
+        self.new_cases[:, date_index + extra_days_cases :] = np.ma.masked
+        self.new_deaths[:, date_index + extra_days_deaths :] = np.ma.masked
