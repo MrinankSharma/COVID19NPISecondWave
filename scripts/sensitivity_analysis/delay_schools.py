@@ -43,6 +43,26 @@ if __name__ == "__main__":
 
     model_build_dict = config["model_kwargs"]
 
+    school_npis = [
+        "Childcare Closed",
+        "Primary Schools Closed",
+        "Secondary Schools Closed",
+    ]
+
+    nRs, nCMs, nDs = data.active_cms.shape
+    new_active_cms = np.copy(data.active_cms)
+
+    for school_npi in school_npis:
+        school_npi_index = data.CMs.index(school_npi)
+        new_active_cms[:, school_npi_index, 5:] = data.active_cms[
+            :, school_npi_index, :-5
+        ]
+        new_active_cms[:, school_npi_index, :5] = (
+            data.active_cms[:, school_npi_index, 0].reshape((nRs, 1)).repeat(5, axis=-1)
+        )
+
+    data.active_cms = new_active_cms
+
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
         data,

@@ -1,11 +1,5 @@
 import sys, os
 
-os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=1 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "intra_op_parallelism_threads=1"
-)
-
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
@@ -16,10 +10,14 @@ from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument(
-    "--rgs", dest="rgs", type=int, help="Region indices to leave out", nargs="+"
+    "--cs", dest="cs", type=int, help="Country indices to leave out", nargs="+"
 )
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
+
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
 
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
@@ -29,12 +27,20 @@ if __name__ == "__main__":
     print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize(**config["featurize_kwargs"])
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
 
-    for rg in args.rgs:
-        data.remove_region_by_index()
+    countries_to_remove = [data.unique_Cs[i] for i in args.cs]
+
+    for country in countries_to_remove:
+        country_index = data.unique_Cs.index(country)
+        data.remove_country_by_index(country_index)
+
+    ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -60,7 +66,7 @@ if __name__ == "__main__":
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
-        chain_method="sequential",
+        chain_method="parallel",
     )
 
     info_dict["model_config_name"] = args.model_config
@@ -68,7 +74,9 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"rgs": args.rgs}
+    info_dict["exp_config"] = {"cs": args.cs, "country_names": countries_to_remove}
+    info_dict["cm_names"] = data.CMs
+    info_dict["data_path"] = get_data_path()
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(

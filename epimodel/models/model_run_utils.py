@@ -53,7 +53,7 @@ def run_model(
     info_dict["model_kwargs"] = model_kwargs
 
     # also collect some extra information for better diagonstics!
-    print("Warmup")
+    print(f"Warmup Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     mcmc.warmup(
         rng_key,
         data,
@@ -74,7 +74,7 @@ def run_model(
 
     warmup_samples = mcmc.get_samples()
 
-    print("Sample")
+    print(f"Sample Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     mcmc.run(
         rng_key,
         data,
@@ -86,12 +86,14 @@ def run_model(
     posterior_samples = mcmc.get_samples()
     # if you don't block this, the timer won't quite work properly.
     posterior_samples[list(posterior_samples.keys())[0]].block_until_ready()
+    print(f"Sample Finished: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     end = time.time()
     time_per_sample = float(end - start) / num_samples
     divergences = int(mcmc.get_extra_fields()["diverging"].sum())
 
     info_dict["time_per_sample"] = time_per_sample
+    info_dict["total_runtime"] = float(end - start)
     info_dict["divergences"] = divergences
 
     info_dict["sample"] = {}

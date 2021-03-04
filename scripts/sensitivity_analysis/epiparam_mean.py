@@ -6,15 +6,35 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
-import numpyro
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
+argparser.add_argument(
+    "--cases_delay_mean_shift",
+    dest="cases_delay_mean_shift",
+    type=float,
+    help="how much the cases delay mean is shifted for all countries",
+)
+argparser.add_argument(
+    "--death_delay_mean_shift",
+    dest="death_delay_mean_shift",
+    type=float,
+    help="how much the death delay mean is shifted for all countries",
+)
+argparser.add_argument(
+    "--gen_int_mean_shift",
+    dest="gen_int_mean_shift",
+    type=float,
+    help="how much the generation interval mean is shifted",
+)
 
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
 numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -28,6 +48,18 @@ if __name__ == "__main__":
     )
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
+
+    # shift delays
+    ep.generation_interval["mean"] = ep.generation_interval[
+        "mean"
+    ] = args.gen_int_mean_shift
+
+    for _, d in ep.infection_to_reporting_delays.items():
+        d["mean"] = d["mean"] + args.cases_delay_mean_shift
+
+    for _, d in ep.infection_to_fatality_delays.items():
+        d["mean"] = d["mean"] + args.death_delay_mean_shift
+
     ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
@@ -64,7 +96,11 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {}
+    info_dict["exp_config"] = {
+        "cases_delay_mean_shift": args.cases_delay_mean_shift,
+        "deaths_delay_mean_shift": args.death_delay_mean_shift,
+        "gen_int_mean_shift": args.gen_int_mean_shift,
+    }
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 

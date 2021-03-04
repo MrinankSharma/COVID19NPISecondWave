@@ -1,11 +1,5 @@
 import sys, os
 
-os.environ["XLA_FLAGS"] = (
-    "--xla_force_host_platform_device_count=1 "
-    "--xla_cpu_multi_thread_eigen=false "
-    "intra_op_parallelism_threads=1"
-)
-
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
@@ -24,6 +18,10 @@ argparser.add_argument(
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+import numpyro
+
+numpyro.set_host_device_count(args.num_chains)
+
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -32,12 +30,13 @@ if __name__ == "__main__":
     print("Loading Data")
     data = preprocess_data(get_data_path())
     data.featurize(**config["featurize_kwargs"])
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
-
-    for npi in args.npis:
-        data.remove_npi_by_index()
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -66,7 +65,7 @@ if __name__ == "__main__":
         save_results=True,
         output_fname=full_output,
         save_yaml=False,
-        chain_method="sequential",
+        chain_method="parallel",
     )
 
     info_dict["model_config_name"] = args.model_config
@@ -75,6 +74,8 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {"infection_noise_scale": args.infection_noise_scale}
+    info_dict["cm_names"] = data.CMs
+    info_dict["data_path"] = get_data_path()
 
     # also need to add sensitivity analysis experiment options to the summary dict!
     summary = load_keys_from_samples(
