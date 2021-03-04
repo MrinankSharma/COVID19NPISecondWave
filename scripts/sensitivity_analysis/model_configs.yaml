@@ -1,5 +1,7 @@
 # default model config does not override anything
-default: {}
+default:
+  model_kwargs: {}
+  featurize_kwargs: {}
 
 # just an example of how to use these configs
 alt_prior:
