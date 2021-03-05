@@ -32,7 +32,7 @@ if __name__ == "__main__":
     ep = EpidemiologicalParameters()
     ep.populate_region_delays(data)
 
-    model_func = default_model_uk_ifriar()
+    model_func = default_model_uk_ifriar
 
     # this will work for now, but only because the argument is ignored
     ta = get_target_accept_from_model_str(args.model_type)
