@@ -34,9 +34,10 @@ if __name__ == "__main__":
         new_variant_fraction_fname=get_new_variant_path(),
         maximum_fraction_voc=args.maximum_fraction_voc,
     )
+    data.mask_from_date("2021-01-09")
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)

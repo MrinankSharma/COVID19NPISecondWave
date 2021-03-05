@@ -28,9 +28,10 @@ if __name__ == "__main__":
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
     )
+    data.mask_from_date("2021-01-09")
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
 
     model_func = default_model_uk_ifriar
 
