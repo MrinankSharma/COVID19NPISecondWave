@@ -232,5 +232,5 @@ window_of_analysis:
   experiment_tag: window_of_analysis
   args:
     window_of_analysis:
-      - 2020-08-01 2020-12-15
+      - 2020-08-01 2020-12-25
       - 2020-09-01 2021-01-09

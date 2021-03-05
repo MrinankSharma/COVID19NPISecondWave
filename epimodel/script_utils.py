@@ -97,7 +97,7 @@ def get_summary_save_keys():
 
 
 def get_data_path():
-    return "data/alt_all_merged_data.csv"
+    return "data/all_merged_data_2021-01-22.csv"
 
 
 def get_new_variant_path():

@@ -32,11 +32,13 @@ if __name__ == "__main__":
     featurize_arg_dict = config["featurize_kwargs"]
     featurize_arg_dict["stay_home_all_businesses_aggregation"] = args.stay_home_agg
     data.featurize(**featurize_arg_dict)
-    data.mask_new_variant(new_variant_fraction_fname=get_new_variant_path())
+    data.mask_new_variant(
+        new_variant_fraction_fname=get_new_variant_path(),
+    )
+    data.mask_from_date("2021-01-09")
 
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
