@@ -189,7 +189,7 @@ r_walk_noise_scale_prior:
       - 0.2
       - 0.25
 
-r_walk_noise_scale_period:
+r_walk_period:
   experiment_file: r_walk_period.py
   experiment_tag: r_walk_period
   args:
