@@ -122,13 +122,16 @@ def default_model(
     # collect expected cases and deaths
     expected_cases = numpyro.deterministic(
         "expected_cases",
-        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[:, : data.nDs]
-        + 1e-5,
+        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[
+            :, seeding_padding : seeding_padding + data.nDs
+        ],
     )
+
     expected_deaths = numpyro.deterministic(
         "expected_deaths",
-        jax.scipy.signal.convolve2d(future_deaths_t, ep.DPD, mode="full")[:, : data.nDs]
-        + 1e-5,
+        jax.scipy.signal.convolve2d(future_deaths_t, ep.DPD, mode="full")[
+            :, seeding_padding : seeding_padding + data.nDs
+        ],
     )
 
     # country specific psi cases and deaths.
@@ -637,18 +640,17 @@ def default_model_uk_ifriar(
     # collect expected cases and deaths
     expected_cases = numpyro.deterministic(
         "expected_cases",
-        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[:, : data.nDs],
-    )
-    expected_deaths = numpyro.deterministic(
-        "expected_deaths",
-        jax.scipy.signal.convolve2d(future_deaths_t, ep.DPD, mode="full")[
-            :, : data.nDs
+        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[
+            :, seeding_padding : seeding_padding + data.nDs
         ],
     )
 
-    # collect expected cases and deaths
-    numpyro.deterministic("expected_cases", expected_cases)
-    numpyro.deterministic("expected_deaths", expected_deaths)
+    expected_deaths = numpyro.deterministic(
+        "expected_deaths",
+        jax.scipy.signal.convolve2d(future_deaths_t, ep.DPD, mode="full")[
+            :, seeding_padding : seeding_padding + data.nDs
+        ],
+    )
 
     # country specific psi cases and deaths.
     # We will use the 'RC' matrix to pull the correct local area value.
@@ -797,12 +799,15 @@ def random_walk_model(
     # collect expected cases and deaths
     expected_cases = numpyro.deterministic(
         "expected_cases",
-        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[:, : data.nDs],
+        jax.scipy.signal.convolve2d(future_cases_t, ep.DPC, mode="full")[
+            :, seeding_padding : seeding_padding + data.nDs
+        ],
     )
+
     expected_deaths = numpyro.deterministic(
         "expected_deaths",
         jax.scipy.signal.convolve2d(future_deaths_t, ep.DPD, mode="full")[
-            :, : data.nDs
+            :, seeding_padding : seeding_padding + data.nDs
         ],
     )
 
