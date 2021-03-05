@@ -158,7 +158,6 @@ npi_leaveout:
       - [17]
       - [18]
       - [19]
-      - [20]
 
 output_noise_scale_prior:
   experiment_file: output_noise_scale_prior.py
