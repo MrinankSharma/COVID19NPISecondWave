@@ -56,11 +56,13 @@ if __name__ == "__main__":
         ep.generation_interval["mean"] + args.gen_int_mean_shift
     )
 
-    for _, d in ep.infection_to_reporting_delays.items():
-        d["mean"] = d["mean"] + args.cases_delay_mean_shift
+    ep.onset_to_death_delay["mean"] = (
+            ep.onset_to_death_delay["mean"] + args.death_delay_mean_shift
+    )
 
-    for _, d in ep.infection_to_fatality_delays.items():
-        d["mean"] = d["mean"] + args.death_delay_mean_shift
+    ep.onset_to_case_delay["mean"] = (
+            ep.onset_to_case_delay["mean"] + args.cases_delay_mean_shift
+    )
 
     ep.generate_delays()
 
