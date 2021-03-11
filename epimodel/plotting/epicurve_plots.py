@@ -24,7 +24,7 @@ def plot_area_transmission_curve(area_Rt_samples, Ds, title=None):
 
     plt.yticks(fontsize=8)
     plt.ylim([0.25, 2.5])
-    plt.ylabel("$Rt$")
+    plt.ylabel("R", fontsize=10)
 
 
 def plot_area_infections_curve(area_infections, Ds, title=None):
@@ -42,8 +42,9 @@ def plot_area_infections_curve(area_infections, Ds, title=None):
     plt.xlim([Ds[0], Ds[-1]])
 
     plt.yticks(fontsize=8)
-    plt.ylabel("$N_t$")
+    plt.ylabel("Infections", fontsize=10)
     plt.yscale("log")
+    plt.minorticks_off()
 
 
 def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
@@ -52,12 +53,12 @@ def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
         psi_cases.reshape((nS, 1)).repeat(nDs, axis=1),
         psi_cases.reshape((nS, 1)) / (expected_cases + psi_cases.reshape((nS, 1))),
     )
-    li, lq, m, uq, ui = np.percentile(expected_cases, [2.5, 25, 50, 75, 97.5], axis=0)
+    li, lq, m, uq, ui = np.percentile(output_cases, [2.5, 25, 50, 75, 97.5], axis=0)
 
-    plt.plot(Ds, m, color="k")
-    plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
-    plt.fill_between(Ds, lq, uq, color="k", alpha=0.3, linewidth=0)
-    plt.scatter(Ds, new_cases, s=8, color="tab:blue")
+    plt.plot(Ds, m, color="tab:blue")
+    plt.fill_between(Ds, li, ui, color="tab:blue", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="tab:blue", alpha=0.3, linewidth=0)
+    plt.scatter(Ds, new_cases, s=3, color="tab:blue")
 
     if title is not None:
         plt.title(title, fontsize=10)
@@ -67,8 +68,9 @@ def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     plt.xlim([Ds[0], Ds[-1]])
 
     plt.yticks(fontsize=8)
-    plt.ylabel("Cases")
+    plt.ylabel("Cases", fontsize=10)
     plt.yscale("log")
+
 
 
 def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
@@ -77,18 +79,18 @@ def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=No
         psi_deaths.reshape((nS, 1)).repeat(nDs, axis=1),
         psi_deaths.reshape((nS, 1)) / (expected_deaths + psi_deaths.reshape((nS, 1))),
     )
-    li, lq, m, uq, ui = np.percentile(expected_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
+    li, lq, m, uq, ui = np.percentile(output_deaths, [2.5, 25, 50, 75, 97.5], axis=0)
 
-    plt.plot(Ds, m, color="k")
-    plt.fill_between(Ds, li, ui, color="k", alpha=0.1, linewidth=0)
-    plt.fill_between(Ds, lq, uq, color="k", alpha=0.3, linewidth=0)
-    plt.scatter(Ds, new_deaths, color="tab:red", s=8)
+    plt.plot(Ds, m, color="tab:red")
+    plt.fill_between(Ds, li, ui, color="tab:red", alpha=0.1, linewidth=0)
+    plt.fill_between(Ds, lq, uq, color="tab:red", alpha=0.3, linewidth=0)
+    plt.scatter(Ds, new_deaths, color="tab:red", s=3)
 
     if title is not None:
         plt.title(title, fontsize=10)
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
-    plt.xticks(fontsize=8)
+    plt.xticks(fontsize=5)
     plt.xlim([Ds[0], Ds[-1]])
 
     plt.yticks(fontsize=8)

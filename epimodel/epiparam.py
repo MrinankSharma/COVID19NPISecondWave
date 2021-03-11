@@ -20,11 +20,12 @@ class EpidemiologicalParameters:
     def __init__(
         self,
         generation_interval=None,
-        infection_to_fatality_delays=None,
-        infection_to_reporting_delays=None,
+        incubation_period=None,
+        onset_to_death_delay=None,
+        onset_to_case_delay=None,
         gi_truncation=28,
         cd_truncation=32,
-        dd_truncation=48,
+        dd_truncation=64,
     ):
         """
         Constructor
@@ -39,130 +40,59 @@ class EpidemiologicalParameters:
         :param numpy seed used for randomisation
         :param generation_interval: dictionary containing relevant distribution information
         :param incubation_period : dictionary containing relevant distribution information
-        :param infection_to_fatality_delay: dictionaries containing relevant distribution information
-        :param infection_to_reporting_delay: dictionaries containing relevant distribution information
+        :param onset_to_case_delay dictionary containing relevant distribution information
+        :param onset_to_death_delay: dictionary containing relevant distribution information
         """
         if generation_interval is not None:
             self.generation_interval = generation_interval
         else:
             self.generation_interval = {
-                "mean": 4.83,
+                "mean": 4.83,  # 4.31 to 5.4
                 "sd": 1.73,
                 "dist": "gamma",
             }
 
-        if infection_to_fatality_delays is not None:
-            self.infection_to_fatality_delays = infection_to_fatality_delays
+        if incubation_period is not None:
+            self.incubation_period = incubation_period
         else:
-            self.infection_to_fatality_delays = {
-                "England": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Austria": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Italy": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Germany": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Czech": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Switzerland": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-                "Netherlands": {
-                    "mean": 21.82,
-                    "disp": 14.26,
-                    "dist": "negbinom",
-                },
-            }
+            self.incubation_period = {"mean": 5.53, "sd": 4.73, "dist": "gamma"}
 
-        if infection_to_reporting_delays is not None:
-            self.infection_to_reporting_delays = infection_to_reporting_delays
+        if onset_to_case_delay is not None:
+            self.onset_to_case_delay = onset_to_case_delay
         else:
-            self.infection_to_reporting_delays = {
-                "England": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Austria": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Italy": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Germany": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Czech": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Switzerland": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-                "Netherlands": {
-                    "mean": 10.93,
-                    "disp": 5.41,
-                    "dist": "negbinom",
-                },
-            }
+            self.onset_to_case_delay = {"mean": 5.2775, "sd": 3.7466, "dist": "gamma"}
+
+        if onset_to_death_delay is not None:
+            self.onset_to_death_delay = onset_to_death_delay
+        else:
+            self.onset_to_death_delay = {"mean": 18.6063, "sd": 13.618, "dist": "gamma"}
 
         self.gi_truncation = gi_truncation
         self.cd_truncation = cd_truncation
         self.dd_truncation = dd_truncation
 
-        self.GIv = self.generate_dist_vector(
-            self.generation_interval, int(1e7), self.gi_truncation
-        )
+        self.generate_delays()
 
+    def generate_delays(self, nRv=int(1e7)):
+        self.GIv = self.generate_dist_vector(
+            self.generation_interval, nRv, self.gi_truncation
+        )
         self.GI_projmat = np.zeros((self.GIv.size - 1, self.GIv.size - 1))
         for i in range(self.GIv.size - 2):
             self.GI_projmat[i + 1, i] = 1
         self.GI_projmat[:, -1] = self.GIv[:, ::-1][:, :-1]
         self.GI_flat_rev = self.GIv[:, 1:][:, ::-1].flatten()
 
-        assert set(self.infection_to_reporting_delays.keys()) == set(
-            self.infection_to_fatality_delays.keys()
+        self.DPC = self.generate_dist_vector(
+            [self.incubation_period, self.onset_to_case_delay],
+            int(1e7),
+            self.cd_truncation,
         )
-
-        for k in self.infection_to_reporting_delays.keys():
-            DPC_cs = self.generate_dist_vector(
-                self.infection_to_reporting_delays[k], int(1e7), self.cd_truncation
-            )
-            DPD_cs = self.generate_dist_vector(
-                self.infection_to_fatality_delays[k], int(1e7), self.dd_truncation
-            )
-            self.infection_to_reporting_delays[k]["vector"] = DPC_cs
-            self.infection_to_fatality_delays[k]["vector"] = DPD_cs
-
-        self.DPCv_pa = None
-        self.DPDv_pa = None
+        self.DPD = self.generate_dist_vector(
+            [self.incubation_period, self.onset_to_death_delay],
+            int(1e7),
+            self.dd_truncation,
+        )
 
     def generate_dist_samples(self, dist, nRVs):
         """
@@ -193,6 +123,8 @@ class EpidemiologicalParameters:
         :param max: Truncation.
         :return: pmf - discretised distribution.
         """
+
+        # print(f"Sample mean: {np.mean(samples)} Sample std: {np.std(samples)}")
         bins = np.arange(-1.0, float(max_int))
         bins[2:] += 0.5
 
@@ -200,14 +132,17 @@ class EpidemiologicalParameters:
         # normalise
         pmf = counts / np.sum(counts)
         pmf = pmf.reshape((1, pmf.size))
+
+        # print(self.generate_pmf_statistics_str(pmf))
         return pmf
 
-    def generate_pmf_statistics_str(self, delay_prob):
+    def generate_pmf_statistics_str(self, delay_prob_full):
         """
         Make mean and variance of delay string.
         :param delay_prob: delay to compute statistics of.
         :return: Information string.
         """
+        delay_prob = delay_prob_full.flatten()
         n_max = delay_prob.size
         mean = np.sum([(i) * delay_prob[i] for i in range(n_max)])
         var = np.sum([(i ** 2) * delay_prob[i] for i in range(n_max)]) - mean ** 2
@@ -221,48 +156,14 @@ class EpidemiologicalParameters:
         :param max_gi: int - reporting delay truncation
         :return: discretised generation interval
         """
-        samples = self.generate_dist_samples(dist, nRVs)
+        if isinstance(dist, dict):
+            samples = self.generate_dist_samples(dist, nRVs)
+        elif isinstance(dist, list):
+            samples = np.zeros(nRVs)
+            for d in dist:
+                samples = samples + self.generate_dist_samples(d, nRVs)
+
         return self.discretise_samples(samples, truncation)
-
-    def populate_region_delays(self, data):
-        # populate delays
-        # at the moment, just copies global across all countries
-
-        self.DPCv_pa = np.zeros((data.nRs, self.cd_truncation))
-        self.DPDv_pa = np.zeros((data.nRs, self.dd_truncation))
-
-        for r_i, c in enumerate(data.Cs):
-            self.DPCv_pa[r_i, :] = self.infection_to_reporting_delays[c]["vector"]
-            self.DPDv_pa[r_i, :] = self.infection_to_fatality_delays[c]["vector"]
-
-    def get_region_delays(self):
-        return self.DPCv_pa, self.DPDv_pa
-
-    def generate_all_delay_vectors(
-        self, nRVs=int(1e7), max_reporting=32, max_fatality=48, max_gi=28
-    ):
-        """
-        Generate reporting and fatality discretised delays using Monte Carlo sampling.
-
-        :param nRVs: int - number of random variables used for integration
-        :param max_reporting: int - reporting delay truncation
-        :param max_fatality: int - death delay truncation
-        :param max_gi: int - generation interval truncation
-        :return: reporting_delay, fatality_delay, generation interval tuple of numpy arrays
-        """
-
-        delays = [
-            self.infection_to_reporting_delay,
-            self.infection_to_fatality_delay,
-            self.generation_interval,
-        ]
-        truncations = [max_reporting, max_fatality, max_gi]
-        delays_list = [
-            self.generate_dist_vector(delay, nRVs, truncation)
-            for delay, truncation in zip(delays, truncations)
-        ]
-
-        return tuple(delays_list)
 
     def R_to_daily_growth(self, R):
         gi_beta = self.generation_interval["mean"] / self.generation_interval["sd"] ** 2

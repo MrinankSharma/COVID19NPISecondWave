@@ -46,21 +46,25 @@ if __name__ == "__main__":
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
     )
+    data.mask_from_date("2021-01-09")
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
 
     # shift delays
-    ep.generation_interval["mean"] = ep.generation_interval[
-        "mean"
-    ] = args.gen_int_mean_shift
+    ep.generation_interval["mean"] = (
+        ep.generation_interval["mean"] + args.gen_int_mean_shift
+    )
 
-    for _, d in ep.infection_to_reporting_delays.items():
-        d["mean"] = d["mean"] + args.cases_delay_mean_shift
+    ep.onset_to_death_delay["mean"] = (
+            ep.onset_to_death_delay["mean"] + args.death_delay_mean_shift
+    )
 
-    for _, d in ep.infection_to_fatality_delays.items():
-        d["mean"] = d["mean"] + args.death_delay_mean_shift
+    ep.onset_to_case_delay["mean"] = (
+            ep.onset_to_case_delay["mean"] + args.cases_delay_mean_shift
+    )
 
-    ep.populate_region_delays(data)
+    ep.generate_delays()
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
