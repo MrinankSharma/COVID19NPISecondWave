@@ -2,7 +2,7 @@ holdout:
   experiment_file: holdout.py
   experiment_tag: holdout
   args:
-    rg: [[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]] # we want to actually holdout them all at once, so nested list
+    rg: [[79, 103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
 
 leaveout:
   experiment_file: leaveout.py
@@ -100,17 +100,18 @@ frac_voc:
   experiment_tag: maximum_fraction_voc
   args:
     maximum_fraction_voc:
-      - 0.05
       - 0.15
       - 0.25
       - 0.5
 
 gatherings_agg_type:
   experiment_file: gatherings_agg_type.py
-  experiment_tag: gatherings_agg_type
+  experiment_tag: gatherings_agg
   args:
-    gatherings_aggregation_type:
-      - weaker
+    gatherings_aggregation_type: weaker
+    gatherings_aggregation:
+      - none
+      - out_in
 
 infection_noise_scale:
   experiment_file: infection_noise_scale.py
@@ -157,17 +158,6 @@ npi_leaveout:
       - [17]
       - [18]
       - [19]
-      - [20]
-      - [21]
-      - [22]
-      - [23]
-      - [24]
-      - [25]
-      - [26]
-      - [27]
-      - [28]
-      - [29]
-      - [30]
 
 output_noise_scale_prior:
   experiment_file: output_noise_scale_prior.py
@@ -199,7 +189,7 @@ r_walk_noise_scale_prior:
       - 0.2
       - 0.25
 
-r_walk_noise_scale_period:
+r_walk_period:
   experiment_file: r_walk_period.py
   experiment_tag: r_walk_period
   args:
@@ -242,5 +232,5 @@ window_of_analysis:
   experiment_tag: window_of_analysis
   args:
     window_of_analysis:
-      - 2020-08-01 2020-12-15
+      - 2020-08-01 2020-12-25
       - 2020-09-01 2021-01-09

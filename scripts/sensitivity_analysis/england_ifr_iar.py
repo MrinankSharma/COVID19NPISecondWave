@@ -3,7 +3,7 @@ import sys, os
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
-from epimodel.models.release_candidate_model_v1 import rc_model_1a_uk_ifriar
+from epimodel.models.models import default_model_uk_ifriar
 from epimodel.script_utils import *
 
 import argparse
@@ -28,11 +28,12 @@ if __name__ == "__main__":
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
     )
+    data.mask_from_date("2021-01-09")
+
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-    ep.populate_region_delays(data)
 
-    model_func = rc_model_1a_uk_ifriar
+    model_func = default_model_uk_ifriar
 
     # this will work for now, but only because the argument is ignored
     ta = get_target_accept_from_model_str(args.model_type)
