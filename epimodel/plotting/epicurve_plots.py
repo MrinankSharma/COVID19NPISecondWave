@@ -72,7 +72,6 @@ def plot_area_cases_curve(expected_cases, psi_cases, new_cases, Ds, title=None):
     plt.yscale("log")
 
 
-
 def plot_area_deaths_curve(expected_deaths, psi_deaths, new_deaths, Ds, title=None):
     nS, nDs = expected_deaths.shape
     output_deaths = np.random.negative_binomial(

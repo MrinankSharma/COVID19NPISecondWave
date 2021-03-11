@@ -57,11 +57,11 @@ if __name__ == "__main__":
     )
 
     ep.onset_to_death_delay["mean"] = (
-            ep.onset_to_death_delay["mean"] + args.death_delay_mean_shift
+        ep.onset_to_death_delay["mean"] + args.death_delay_mean_shift
     )
 
     ep.onset_to_case_delay["mean"] = (
-            ep.onset_to_case_delay["mean"] + args.cases_delay_mean_shift
+        ep.onset_to_case_delay["mean"] + args.cases_delay_mean_shift
     )
 
     ep.generate_delays()
