@@ -87,7 +87,7 @@ def run_types_to_commands(run_types, exp_options):
 
         print("loading all config options")
         configs = list(config_options.keys())
-        configs.pop("default")
+        configs.remove("default")
 
     for config in configs:
         model_config = config
