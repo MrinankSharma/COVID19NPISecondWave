@@ -86,7 +86,7 @@ def run_types_to_commands(run_types, exp_options):
                 print(exc)
 
         print("loading all config options")
-        configs = config_options.keys()
+        configs = list(config_options.keys())
         configs.pop("default")
 
     for config in configs:
