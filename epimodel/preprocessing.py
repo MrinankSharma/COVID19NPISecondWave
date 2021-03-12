@@ -266,6 +266,7 @@ class PreprocessedData(object):
         if drop_npi_filter is None:
             drop_npi_filter = [
                 {"query": "All Face-to-Face Businesses Closed", "type": "equals"},
+                {"query": "Stay at Home Order", "type": "equals"},
                 {"query": "Childcare", "type": "includes"},
             ]
 
