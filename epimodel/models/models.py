@@ -712,8 +712,9 @@ def random_walk_model(
     basic_R = sample_basic_R(data.nRs, basic_R_prior)
 
     # number of 'noise points'
-    # -2 since no change for the first 3 weeks.
-    nNP = int(data.nDs / r_walk_period) - 1
+    nNP = (
+        int(data.nDs / r_walk_period) - 1
+    )  # -1 since no change for the first 2 weeks. +1 (round up) - 2 since fixed for the first 2 weeks
 
     r_walk_noise_scale = numpyro.sample(
         "r_walk_noise_scale", dist.HalfNormal(scale=r_walk_noise_scale_prior)

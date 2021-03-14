@@ -36,7 +36,10 @@ def preprocess_data(
         """
         This function implements implicit processing of household NPIs. i.e., if the
         gathering limit is X, then the household limit is also set to X if no household
-        limit has been recorded
+        limit has been recorded. In other words, if the gathering limit is stricter than
+        the household limit (e.g., 6 people from 10 households), the household limit is set
+        to the gathering limit, since worst case is that every person comes from their own
+        household.
 
         :param active_CMs: nRs x nCMs x nDs activation matrix
         :param household_NPI_index: household index
