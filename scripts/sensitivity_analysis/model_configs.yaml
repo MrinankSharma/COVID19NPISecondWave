@@ -1,0 +1,219 @@
+# default model config does not override anything
+default:
+  model_kwargs: {}
+  featurize_kwargs: {}
+
+keep_both:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+keep_both_ii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors_ii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker_ii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+keep_both_iii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors_iii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker_iii:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+
+keep_both_iv:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: none
+    household_stays_on: True
+
+drop_outdoors_iv:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: True
+
+weaker_iv:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: True
+
+
+keep_both_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: False
+
+drop_outdoors_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: False
+
+weaker_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 6, 30, 200]
+    private_gathering_thresholds: [1, 2, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: False
+
+keep_both_ii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: none
+    household_stays_on: False
+
+drop_outdoors_ii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: False
+
+weaker_ii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 6, 30, 200]
+    private_gathering_thresholds: [1, 6, 30, 200]
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: False
+
+keep_both_iii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: none
+    household_stays_on: False
+
+drop_outdoors_iii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: False
+
+weaker_iii_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 5, 30, 200]
+    private_gathering_thresholds: [1, 2, 5, 30, 200]
+    household_upper_limit: 6
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: False
+
+
+keep_both_iv_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: none
+    household_stays_on: False
+
+drop_outdoors_iv_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: drop_outdoor
+    household_stays_on: False
+
+weaker_iv_stay_on:
+  model_kwargs: {}
+  featurize_kwargs:
+    public_gathering_thresholds: [1, 2, 10, 30, 200]
+    private_gathering_thresholds: [1, 2, 10, 30, 200]
+    household_upper_limit: 11
+    gatherings_aggregation: out_in
+    gatherings_aggregation_type: weaker
+    household_stays_on: False
