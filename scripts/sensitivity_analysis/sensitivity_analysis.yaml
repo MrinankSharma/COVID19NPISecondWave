@@ -2,7 +2,7 @@ holdout:
   experiment_file: holdout.py
   experiment_tag: holdout
   args:
-    rg: [[79, 103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
+    rg: [[103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
 
 leaveout:
   experiment_file: leaveout.py
