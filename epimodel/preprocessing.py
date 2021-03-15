@@ -274,10 +274,10 @@ class PreprocessedData(object):
             ]
 
         if public_gathering_thresholds is None:
-            public_gathering_thresholds = [1, 2, 6, 30]
+            public_gathering_thresholds = [1, 2, 10, 30]
 
         if private_gathering_thresholds is None:
-            private_gathering_thresholds = [1, 2, 6, 30]
+            private_gathering_thresholds = [1, 2, 10, 30]
 
         if mask_thresholds is None:
             mask_thresholds = [3]
