@@ -2,7 +2,7 @@ holdout:
   experiment_file: holdout.py
   experiment_tag: holdout
   args:
-    rg: [[79, 103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
+    rg: [[103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
 
 leaveout:
   experiment_file: leaveout.py
@@ -234,3 +234,9 @@ window_of_analysis:
     window_of_analysis:
       - 2020-08-01 2020-12-25
       - 2020-09-01 2021-01-09
+
+bootstrap:
+  experiment_file: bootstrap.py
+  experiment_tag: boostrap
+  args:
+    seed: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

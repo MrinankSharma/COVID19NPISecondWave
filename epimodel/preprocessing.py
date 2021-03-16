@@ -10,7 +10,7 @@ import pandas as pd
 def preprocess_data(
     data_path,
     start_date="2020-08-01",
-    end_date="2021-01-09",
+    end_date="2021-01-22",
     npi_start_col=3,
     skipcases=8,
     skipdeaths=26,
@@ -36,7 +36,10 @@ def preprocess_data(
         """
         This function implements implicit processing of household NPIs. i.e., if the
         gathering limit is X, then the household limit is also set to X if no household
-        limit has been recorded
+        limit has been recorded. In other words, if the gathering limit is stricter than
+        the household limit (e.g., 6 people from 10 households), the household limit is set
+        to the gathering limit, since worst case is that every person comes from their own
+        household.
 
         :param active_CMs: nRs x nCMs x nDs activation matrix
         :param household_NPI_index: household index
@@ -221,7 +224,6 @@ class PreprocessedData(object):
         household_upper_limit=7,
         gatherings_aggregation="drop_outdoor",
         gatherings_aggregation_type="weaker",
-        stay_home_all_businesses_aggregation="and",
         keep_merged_value=False,
     ):
         if self.featurized is True:
@@ -235,7 +237,6 @@ class PreprocessedData(object):
             "Gastronomy Closed",
             "Leisure Venues Closed",
             "Retail Closed",
-            "Stay at Home Order",
             "Curfew",
             "Childcare Closed",
             "Primary Schools Closed",
@@ -267,15 +268,16 @@ class PreprocessedData(object):
 
         if drop_npi_filter is None:
             drop_npi_filter = [
-                {"query": "Retail Closed", "type": "equals"},
+                {"query": "All Face-to-Face Businesses Closed", "type": "equals"},
+                {"query": "Stay at Home Order", "type": "equals"},
                 {"query": "Childcare", "type": "includes"},
             ]
 
         if public_gathering_thresholds is None:
-            public_gathering_thresholds = [1, 2, 6, 30]
+            public_gathering_thresholds = [1, 2, 10, 30]
 
         if private_gathering_thresholds is None:
-            private_gathering_thresholds = [1, 2, 6, 30]
+            private_gathering_thresholds = [1, 2, 10, 30]
 
         if mask_thresholds is None:
             mask_thresholds = [3]
@@ -410,43 +412,6 @@ class PreprocessedData(object):
                 "gatherings_aggregation must be in [drop_outdoor, out_in, pub_priv, none]"
             )
 
-        if (
-            stay_home_all_businesses_aggregation is None
-            or stay_home_all_businesses_aggregation == "none"
-        ):
-            # i.e.., don't aggregate
-            pass
-        elif stay_home_all_businesses_aggregation == "and":
-            stay_home_ind = self.CMs.index("Stay at Home Order")
-            all_buss_ind = self.CMs.index("All Face-to-Face Businesses Closed")
-
-            self.CMs[all_buss_ind] = "Stay at Home Order AND All F2F Businesses Closed"
-            binary_npis.append(self.CMs[all_buss_ind])
-            self.active_cms[:, all_buss_ind, :] = np.logical_and(
-                self.active_cms[:, stay_home_ind, :],
-                self.active_cms[:, all_buss_ind, :],
-            )
-            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
-
-        elif stay_home_all_businesses_aggregation == "or":
-            stay_home_ind = self.CMs.index("Stay at Home Order")
-            all_buss_ind = self.CMs.index("All Face-to-Face Businesses Closed")
-
-            self.CMs[all_buss_ind] = "Stay at Home Order OR All F2F Businesses Closed"
-            binary_npis.append(self.CMs[all_buss_ind])
-            self.active_cms[:, all_buss_ind, :] = np.logical_or(
-                self.active_cms[:, stay_home_ind, :],
-                self.active_cms[:, all_buss_ind, :],
-            )
-            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
-
-        elif stay_home_all_businesses_aggregation == "drop_stay_home":
-            drop_npi_filter.append({"query": "Stay at Home Order", "type": "equals"})
-        else:
-            raise ValueError(
-                "stay_home_all_businesses_aggregation must be in [none, and, or, drop_stay_home]"
-            )
-
         mask_npi = "Mandatory Mask Wearing"
 
         nRs, _, nDs = self.active_cms.shape
@@ -489,13 +454,13 @@ class PreprocessedData(object):
                 cm_names.append(f"{gath_npi} - {t}")
 
             if household_stays_on:
-                # if there is a gathering ban under 10 people, and the household limit is 2
+                # if there is a gathering ban under the upper limit people, and the household limit is 2
                 is_relevant_gath_ban = np.logical_and(
                     self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
                     self.active_cms[:, gath_npi_ind, :] > 0,
                 )
                 household_feature = np.logical_and(
-                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] == 2
+                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] < 3
                 )
                 new_active_cms = np.append(
                     new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
@@ -509,7 +474,7 @@ class PreprocessedData(object):
                     self.active_cms[:, gath_npi_ind, :] < household_upper_limit,
                 )
                 household_feature = np.logical_and(
-                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] == 2
+                    is_relevant_gath_ban, self.active_cms[:, hshold_npi_ind, :] < 3
                 )
                 new_active_cms = np.append(
                     new_active_cms, household_feature.reshape((nRs, 1, nDs)), axis=1
