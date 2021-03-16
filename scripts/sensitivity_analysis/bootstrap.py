@@ -3,38 +3,27 @@ import sys, os
 sys.path.append(os.getcwd())  # add current working directory to the path
 
 from epimodel import EpidemiologicalParameters, run_model, preprocess_data
+from epimodel.preprocessing import PreprocessedData
 from epimodel.script_utils import *
 
 import argparse
+import numpyro
+import numpy as np
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument(
-    "--cases_delay_mean_shift",
-    dest="cases_delay_mean_shift",
-    type=float,
-    help="how much the cases delay mean is shifted for all countries",
-)
-argparser.add_argument(
-    "--death_delay_mean_shift",
-    dest="death_delay_mean_shift",
-    type=float,
-    help="how much the death delay mean is shifted for all countries",
-)
-argparser.add_argument(
-    "--gen_int_mean_shift",
-    dest="gen_int_mean_shift",
-    type=float,
-    help="how much the generation interval mean is shifted",
-)
 
 add_argparse_arguments(argparser)
+argparser.add_argument(
+    "--seed",
+    dest="seed",
+    type=int,
+    help="seed for bootstrapping",
+)
+
 args = argparser.parse_args()
 
-import numpyro
-
 numpyro.set_host_device_count(args.num_chains)
-
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")
     config = load_model_config(args.model_config)
@@ -48,23 +37,37 @@ if __name__ == "__main__":
     )
     data.mask_from_date("2021-01-09")
 
+    np.random.seed(args.seed)
+    region_indices = np.random.choice(np.arange(data.nRs), size=data.nRs, replace=True)
+
+    print(f"Boostrapped: {np.unique(region_indices).size} unique regions")
+
+    Rs = np.array(data.Rs)[region_indices].tolist()
+    new_cases = data.new_cases[region_indices, :]
+    new_deaths = data.new_deaths[region_indices, :]
+    Cs = np.array(data.Cs)[region_indices].tolist()
+    active_cms = data.active_cms[region_indices, :, :]
+    unique_Cs = sorted(list(set(Cs)))
+    nCs = len(unique_Cs)
+
+    C_indices = []
+    for uc in unique_Cs:
+        a_indices = np.nonzero([uc == c for c in Cs])[0]
+        C_indices.append(a_indices)
+
+    bootstrapped_data = PreprocessedData(
+        Rs,
+        data.Ds,
+        data.CMs,
+        new_cases,
+        new_deaths,
+        active_cms,
+        Cs,
+        unique_Cs,
+        C_indices,
+    )
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
-
-    # shift delays
-    ep.generation_interval["mean"] = (
-        ep.generation_interval["mean"] + args.gen_int_mean_shift
-    )
-
-    ep.onset_to_death_delay["mean"] = (
-        ep.onset_to_death_delay["mean"] + args.death_delay_mean_shift
-    )
-
-    ep.onset_to_case_delay["mean"] = (
-        ep.onset_to_case_delay["mean"] + args.cases_delay_mean_shift
-    )
-
-    ep.generate_delays()
 
     model_func = get_model_func_from_str(args.model_type)
     ta = get_target_accept_from_model_str(args.model_type)
@@ -81,7 +84,7 @@ if __name__ == "__main__":
 
     posterior_samples, _, info_dict, _ = run_model(
         model_func,
-        data,
+        bootstrapped_data,
         ep,
         num_samples=args.num_samples,
         num_chains=args.num_chains,
@@ -100,11 +103,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {
-        "cases_delay_mean_shift": args.cases_delay_mean_shift,
-        "deaths_delay_mean_shift": args.death_delay_mean_shift,
-        "gen_int_mean_shift": args.gen_int_mean_shift,
-    }
+    info_dict["exp_config"] = {"region_indices": region_indices}
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 

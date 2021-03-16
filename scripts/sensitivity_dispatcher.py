@@ -78,6 +78,17 @@ def run_types_to_commands(run_types, exp_options):
     commands = []
     configs = args.model_config
 
+    if len(configs) == 1 and configs[0] == "all":
+        with open("scripts/sensitivity_analysis/model_configs.yaml", "r") as stream:
+            try:
+                config_options = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        print("loading all config options")
+        configs = list(config_options.keys())
+        configs.remove("default")
+
     for config in configs:
         model_config = config
         for rt in run_types:
