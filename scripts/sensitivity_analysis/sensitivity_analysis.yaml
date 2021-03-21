@@ -44,7 +44,7 @@ basic_R_prior_scale:
       - 0.2
       - 0.4
     basic_R_mean:
-      - 1.5
+      - 1.35
 
 england_ifr_iar:
   experiment_file: england_ifr_iar.py
@@ -257,7 +257,7 @@ bootstrap_ms:
   experiment_file: bootstrap.py
   experiment_tag: boostrap
   args:
-    seed: 2
+    seed: [2, 11, 12, 13, 14]
 
 npi_leaveout_ms:
   experiment_file: npi_leaveout.py
