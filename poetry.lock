@@ -88,7 +88,6 @@ tests_no_zope = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0
 [[package]]
 category = "main"
 description = "Specifications for callback functions passed in to an API"
-marker = "python_version >= \"3.3\""
 name = "backcall"
 optional = false
 python-versions = "*"
@@ -220,17 +219,6 @@ version = "0.7.1"
 
 [[package]]
 category = "main"
-description = "serialize all of python"
-name = "dill"
-optional = false
-python-versions = ">=2.6, !=3.0.*"
-version = "0.3.3"
-
-[package.extras]
-graph = ["objgraph (>=1.7.2)"]
-
-[[package]]
-category = "main"
 description = "Tree is a library for working with nested data structures."
 name = "dm-tree"
 optional = false
@@ -247,17 +235,6 @@ name = "entrypoints"
 optional = false
 python-versions = ">=2.7"
 version = "0.3"
-
-[[package]]
-category = "main"
-description = "A nested progress with plotting options for fastai"
-name = "fastprogress"
-optional = false
-python-versions = ">=3.6"
-version = "1.0.0"
-
-[package.dependencies]
-numpy = "*"
 
 [[package]]
 category = "main"
@@ -418,7 +395,6 @@ scipy = "*"
 [[package]]
 category = "main"
 description = "An autocompletion tool for Python that can be used for text editors."
-marker = "python_version >= \"3.3\""
 name = "jedi"
 optional = false
 python-versions = ">=3.6"
@@ -860,20 +836,8 @@ version = "0.8.1"
 
 [[package]]
 category = "main"
-description = "A Python package for describing statistical models and for building design matrices."
-name = "patsy"
-optional = false
-python-versions = "*"
-version = "0.5.1"
-
-[package.dependencies]
-numpy = ">=1.4"
-six = "*"
-
-[[package]]
-category = "main"
 description = "Pexpect allows easy control of interactive console applications."
-marker = "python_version >= \"3.3\" and sys_platform != \"win32\""
+marker = "python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\""
 name = "pexpect"
 optional = false
 python-versions = "*"
@@ -885,7 +849,6 @@ ptyprocess = ">=0.5"
 [[package]]
 category = "main"
 description = "Tiny 'shelve'-like database with concurrency support"
-marker = "python_version >= \"3.3\""
 name = "pickleshare"
 optional = false
 python-versions = "*"
@@ -913,7 +876,6 @@ twisted = ["twisted"]
 [[package]]
 category = "main"
 description = "Library for building powerful interactive command lines in Python"
-marker = "python_version >= \"3.3\""
 name = "prompt-toolkit"
 optional = false
 python-versions = ">=3.6.1"
@@ -955,25 +917,6 @@ name = "pygments"
 optional = false
 python-versions = ">=3.5"
 version = "2.8.1"
-
-[[package]]
-category = "main"
-description = "Probabilistic Programming in Python: Bayesian Modeling and Probabilistic Machine Learning with Theano"
-name = "pymc3"
-optional = false
-python-versions = ">=3.6"
-version = "3.10.0"
-
-[package.dependencies]
-arviz = ">=0.9.0"
-dill = "*"
-fastprogress = ">=0.2.0"
-numpy = ">=1.13.0"
-pandas = ">=0.18.0"
-patsy = ">=0.5.1"
-scipy = ">=0.18.1"
-theano-pymc = "1.0.11"
-typing-extensions = ">=3.7.4"
 
 [[package]]
 category = "main"
@@ -1169,18 +1112,6 @@ tfds = ["tfds-nightly"]
 
 [[package]]
 category = "main"
-description = "Optimizing compiler for evaluating mathematical expressions on CPUs and GPUs."
-name = "theano-pymc"
-optional = false
-python-versions = "*"
-version = "1.0.11"
-
-[package.dependencies]
-numpy = ">=1.9.1"
-scipy = ">=0.14"
-
-[[package]]
-category = "main"
 description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
 optional = false
@@ -1301,7 +1232,7 @@ parallel = ["dask"]
 viz = ["matplotlib", "seaborn", "nc-time-axis"]
 
 [metadata]
-content-hash = "a912659700da7dd9e339e1f77f3b3175a92f1d813261329182446fdedea1f17a"
+content-hash = "510a9c2531341fd72d990bad2005425e44cfb7dbf2f5d99d7f769e69813892d4"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -1467,10 +1398,6 @@ defusedxml = [
     {file = "defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"},
     {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
 ]
-dill = [
-    {file = "dill-0.3.3-py2.py3-none-any.whl", hash = "sha256:78370261be6ea49037ace8c17e0b7dd06d0393af6513cc23f9b222d9367ce389"},
-    {file = "dill-0.3.3.zip", hash = "sha256:efb7f6cb65dba7087c1e111bb5390291ba3616741f96840bfc75792a1a9b5ded"},
-]
 dm-tree = [
     {file = "dm-tree-0.1.5.tar.gz", hash = "sha256:a951d2239111dfcc468071bc8ff792c7b1e3192cab5a3c94d33a8b2bda3127fa"},
     {file = "dm_tree-0.1.5-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:39a2c12d86b9df7bcb64c3473957744bc1af812dd7bf27c01108f17ed688644b"},
@@ -1489,10 +1416,6 @@ dm-tree = [
 entrypoints = [
     {file = "entrypoints-0.3-py2.py3-none-any.whl", hash = "sha256:589f874b313739ad35be6e0cd7efde2a4e9b6fea91edcc34e58ecbb8dbe56d19"},
     {file = "entrypoints-0.3.tar.gz", hash = "sha256:c70dd71abe5a8c85e55e12c19bd91ccfeec11a6e99044204511f9ed547d48451"},
-]
-fastprogress = [
-    {file = "fastprogress-1.0.0-py3-none-any.whl", hash = "sha256:474cd6a6e5b1c29a02383d709bf71f502477d0849bddc6ba5aa80b683f4ad16f"},
-    {file = "fastprogress-1.0.0.tar.gz", hash = "sha256:89e28ac1d2a5412aab18ee3f3dfd1ee8b5c1f2f7a44d0add0d0d4f69f0191bfe"},
 ]
 flatbuffers = [
     {file = "flatbuffers-1.12-py2.py3-none-any.whl", hash = "sha256:9e9ef47fa92625c4721036e7c4124182668dc6021d9e7c73704edd395648deb9"},
@@ -1822,10 +1745,6 @@ pathspec = [
     {file = "pathspec-0.8.1-py2.py3-none-any.whl", hash = "sha256:aa0cb481c4041bf52ffa7b0d8fa6cd3e88a2ca4879c533c9153882ee2556790d"},
     {file = "pathspec-0.8.1.tar.gz", hash = "sha256:86379d6b86d75816baba717e64b1a3a3469deb93bb76d613c9ce79edc5cb68fd"},
 ]
-patsy = [
-    {file = "patsy-0.5.1-py2.py3-none-any.whl", hash = "sha256:5465be1c0e670c3a965355ec09e9a502bf2c4cbe4875e8528b0221190a8a5d40"},
-    {file = "patsy-0.5.1.tar.gz", hash = "sha256:f115cec4201e1465cd58b9866b0b0e7b941caafec129869057405bfe5b5e3991"},
-]
 pexpect = [
     {file = "pexpect-4.8.0-py2.py3-none-any.whl", hash = "sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937"},
     {file = "pexpect-4.8.0.tar.gz", hash = "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"},
@@ -1892,10 +1811,6 @@ pycparser = [
 pygments = [
     {file = "Pygments-2.8.1-py3-none-any.whl", hash = "sha256:534ef71d539ae97d4c3a4cf7d6f110f214b0e687e92f9cb9d2a3b0d3101289c8"},
     {file = "Pygments-2.8.1.tar.gz", hash = "sha256:2656e1a6edcdabf4275f9a3640db59fd5de107d88e8663c5d4e9a0fa62f77f94"},
-]
-pymc3 = [
-    {file = "pymc3-3.10.0-py3-none-any.whl", hash = "sha256:5d36f963699f6799ae0c0b4adc5b6a826db5144f7f6cf8640c84f071c05085db"},
-    {file = "pymc3-3.10.0.tar.gz", hash = "sha256:6a1461a6239758edb78f66d31b3975dce54b6e80f3938717524e5a17803cc32e"},
 ]
 pyparsing = [
     {file = "pyparsing-2.4.7-py2.py3-none-any.whl", hash = "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"},
@@ -2087,9 +2002,6 @@ testpath = [
 ]
 tfp-nightly = [
     {file = "tfp_nightly-0.13.0.dev20210321-py2.py3-none-any.whl", hash = "sha256:2f44170e5aeb7de102597c78a9138fc8495e5a50f32f5db3d767d6dc15982939"},
-]
-theano-pymc = [
-    {file = "Theano-PyMC-1.0.11.tar.gz", hash = "sha256:1fcf4df33e2310f76f34fc50ee8932cdbe501064774ec4577a471d0a6cc0cb28"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
