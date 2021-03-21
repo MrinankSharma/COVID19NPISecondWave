@@ -1236,7 +1236,7 @@ parallel = ["dask"]
 viz = ["matplotlib", "seaborn", "nc-time-axis"]
 
 [metadata]
-content-hash = "510a9c2531341fd72d990bad2005425e44cfb7dbf2f5d99d7f769e69813892d4"
+content-hash = "5384b430e1177fa61506468a3f57723263b886e6f5a544802e3bf328d783a876"
 python-versions = "^3.8"
 
 [metadata.files]
