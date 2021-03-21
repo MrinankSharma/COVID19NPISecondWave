@@ -18,12 +18,12 @@ def get_model_func_from_str(model_type_str):
 
 def get_target_accept_from_model_str(model_type_str):
     # default
-    return 0.8
+    return 0.75
 
 
 def get_tree_depth_from_model_str(model_type_str):
     # default
-    return 20
+    return 15
 
 
 def add_argparse_arguments(argparse):

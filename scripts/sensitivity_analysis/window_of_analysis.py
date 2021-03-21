@@ -6,6 +6,7 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
+import json
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
@@ -31,14 +32,15 @@ if __name__ == "__main__":
 
     start_date = args.window_of_analysis[0]
     end_date = args.window_of_analysis[1]
+    print(f"Start date {start_date}\nEnd date {end_date}")
 
     print("Loading Data")
-    data = preprocess_data(get_data_path(), start_date=start_date, end_date=end_date)
+    data = preprocess_data(get_data_path(), start_date=start_date)
     data.featurize(**config["featurize_kwargs"])
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
     )
-    data.mask_from_date("2021-01-09")
+    data.mask_from_date(end_date)
 
     print("Loading EpiParam")
     ep = EpidemiologicalParameters()
@@ -51,7 +53,7 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
@@ -67,7 +69,6 @@ if __name__ == "__main__":
         model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
@@ -88,4 +89,4 @@ if __name__ == "__main__":
         get_summary_save_keys(), posterior_samples, info_dict
     )
     with open(summary_output, "w") as f:
-        yaml.dump(summary, f, sort_keys=True)
+        json.dump(info_dict, f, ensure_ascii=False, indent=4)

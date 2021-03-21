@@ -4,8 +4,9 @@ from datetime import datetime
 import arviz as az
 import numpy as np
 import numpyro
-import yaml
+import json
 from jax import random
+import jax.numpy as jnp
 from numpyro.infer import MCMC, NUTS, init_to_median
 
 
@@ -16,22 +17,24 @@ def run_model(
     num_samples=500,
     num_warmup=500,
     num_chains=4,
-    target_accept=0.8,
-    max_tree_depth=20,
+    target_accept=0.75,
+    max_tree_depth=15,
     save_results=True,
     output_fname=None,
     model_kwargs=None,
-    save_yaml=False,
+    save_json=False,
     chain_method="parallel",
+    heuristic_step_size=True,
 ):
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
     )
     nuts_kernel = NUTS(
         model_func,
-        init_strategy=init_to_median,
+        init_strategy= init_to_median,
         target_accept_prob=target_accept,
         max_tree_depth=max_tree_depth,
+        find_heuristic_step_size=heuristic_step_size,
     )
     mcmc = MCMC(
         nuts_kernel,
@@ -41,6 +44,16 @@ def run_model(
         chain_method=chain_method,
     )
     rng_key = random.PRNGKey(0)
+
+    # hmcstate = nuts_kernel.init(rng_key, 1, model_args=(data, ep))
+    # nRVs = hmcstate.adapt_state.inverse_mass_matrix.size
+    # inverse_mass_matrix = init_diag_inv_mass_mat * jnp.ones(nRVs)
+    # mass_matrix_sqrt_inv = np.sqrt(inverse_mass_matrix)
+    # mass_matrix_sqrt = 1./mass_matrix_sqrt_inv
+    # hmcstate = hmcstate._replace(adapt_state=hmcstate.adapt_state._replace(inverse_mass_matrix=inverse_mass_matrix))
+    # hmcstate = hmcstate._replace(adapt_state=hmcstate.adapt_state._replace(mass_matrix_sqrt_inv=mass_matrix_sqrt_inv))
+    # hmcstate = hmcstate._replace(adapt_state=hmcstate.adapt_state._replace(mass_matrix_sqrt=mass_matrix_sqrt))
+    # mcmc.post_warmup_state = hmcstate
 
     info_dict = {
         "model_name": model_func.__name__,
@@ -60,7 +73,7 @@ def run_model(
         ep,
         **model_kwargs,
         collect_warmup=True,
-        extra_fields=["num_steps", "mean_accept_prob"],
+        extra_fields=["num_steps", "mean_accept_prob", "adapt_state"],
     )
     mcmc.get_extra_fields()["num_steps"].block_until_ready()
 
@@ -68,6 +81,22 @@ def run_model(
     info_dict["warmup"]["num_steps"] = np.array(
         mcmc.get_extra_fields()["num_steps"]
     ).tolist()
+    info_dict["warmup"]["step_size"] = np.array(
+        mcmc.get_extra_fields()["adapt_state"].step_size
+    ).tolist()
+    info_dict["warmup"]["inverse_mass_matrix"] = {}
+
+    all_mass_mats = jnp.array(jnp.array_split(
+            mcmc.get_extra_fields()["adapt_state"].inverse_mass_matrix,
+            num_chains,
+            axis=0,
+    ))
+
+    print(all_mass_mats.shape)
+
+    for i in range(num_chains):
+        info_dict["warmup"]["inverse_mass_matrix"][f"chain_{i}"] = all_mass_mats[i, -1, :].tolist()
+
     info_dict["warmup"]["mean_accept_prob"] = np.array(
         mcmc.get_extra_fields()["mean_accept_prob"]
     ).tolist()
@@ -80,7 +109,7 @@ def run_model(
         data,
         ep,
         **model_kwargs,
-        extra_fields=["num_steps", "mean_accept_prob"],
+        extra_fields=["num_steps", "mean_accept_prob", "adapt_state"],
     )
 
     posterior_samples = mcmc.get_samples()
@@ -102,6 +131,9 @@ def run_model(
     ).tolist()
     info_dict["sample"]["mean_accept_prob"] = np.array(
         mcmc.get_extra_fields()["mean_accept_prob"]
+    ).tolist()
+    info_dict["sample"]["step_size"] = np.array(
+        mcmc.get_extra_fields()["adapt_state"].step_size
     ).tolist()
 
     print(f"Sampling {num_samples} samples per chain took {end - start:.2f}s")
@@ -163,11 +195,11 @@ def run_model(
 
             az.to_netcdf(inf_data, output_fname)
 
-            yml_fname = output_fname.replace(".netcdf", ".yaml")
-            if save_yaml:
-                print("Saving Yaml")
-                with open(yml_fname, "w") as f:
-                    yaml.dump(info_dict, f, sort_keys=True)
+            json_fname = output_fname.replace(".netcdf", ".json")
+            if save_json:
+                print("Saving Json")
+                with open(json_fname, "w") as f:
+                    json.dump(info_dict, f, ensure_ascii=False, indent=4)
 
         except Exception as e:
             print(e)

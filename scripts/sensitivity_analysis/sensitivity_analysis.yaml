@@ -232,11 +232,69 @@ window_of_analysis:
   experiment_tag: window_of_analysis
   args:
     window_of_analysis:
-      - 2020-08-01 2020-12-25
-      - 2020-09-01 2021-01-09
+      - "2020-08-01 2020-12-20"
+      - "2020-09-01 2021-01-09"
 
 bootstrap:
   experiment_file: bootstrap.py
   experiment_tag: boostrap
   args:
     seed: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# new that I need to run
+delay_schools:
+  experiment_file: delay_schools.py
+  experiment_tag: delay_schools
+  args:
+    n_days_delay:
+      - 3
+      - 5
+      - 7
+      - 9
+      - 11
+
+bootstrap_ms:
+  experiment_file: bootstrap.py
+  experiment_tag: boostrap
+  args:
+    seed: 2
+
+npi_leaveout_ms:
+  experiment_file: npi_leaveout.py
+  experiment_tag: npi_leaveout
+  args:
+    npis:
+      - [8]
+      - [13]
+      - [4]
+
+intervention_prior_ms:
+  experiment_file: intervention_prior.py
+  experiment_tag: intervention_prior
+  args:
+    intervention_prior:
+      - half_normal 0.15
+      - normal 2.
+
+basic_R_prior_mean_ms:
+  experiment_file: basic_R_prior.py
+  experiment_tag: basic_R_prior_mean
+  args:
+    basic_R_scale:
+      - 0.3
+    basic_R_mean:
+      - 1.1
+
+r_walk_noise_scale_prior_ms:
+  experiment_file: r_walk_noise_scale_prior.py
+  experiment_tag: r_walk_noise_scale_prior
+  args:
+    r_walk_noise_scale_prior:
+      - 0.1
+
+output_noise_scale_prior_ms:
+  experiment_file: output_noise_scale_prior.py
+  experiment_tag: output_noise_scale_prior
+  args:
+    output_noise_scale_prior:
+      - 10.
