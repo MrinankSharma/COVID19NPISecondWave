@@ -6,12 +6,21 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
+import json
 import numpyro
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
 
 add_argparse_arguments(argparser)
+argparser.add_argument(
+    "--n_days_delay",
+    dest="n_days_delay",
+    type=int,
+    help="number of days to delay the school features",
+)
+
+
 args = argparser.parse_args()
 
 numpyro.set_host_device_count(args.num_chains)
@@ -39,13 +48,12 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
 
     school_npis = [
-        "Childcare Closed",
         "Primary Schools Closed",
         "Secondary Schools Closed",
     ]
@@ -55,11 +63,11 @@ if __name__ == "__main__":
 
     for school_npi in school_npis:
         school_npi_index = data.CMs.index(school_npi)
-        new_active_cms[:, school_npi_index, 5:] = data.active_cms[
-            :, school_npi_index, :-5
+        new_active_cms[:, school_npi_index, args.n_days_delay:] = data.active_cms[
+            :, school_npi_index, :-args.n_days_delay
         ]
-        new_active_cms[:, school_npi_index, :5] = (
-            data.active_cms[:, school_npi_index, 0].reshape((nRs, 1)).repeat(5, axis=-1)
+        new_active_cms[:, school_npi_index, :args.n_days_delay] = (
+            data.active_cms[:, school_npi_index, 0].reshape((nRs, 1)).repeat(args.n_days_delay, axis=-1)
         )
 
     data.active_cms = new_active_cms
@@ -76,7 +84,6 @@ if __name__ == "__main__":
         model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
@@ -85,7 +92,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {}
+    info_dict["exp_config"] = {"n_days_delay": args.n_days_delay}
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 
@@ -94,4 +101,4 @@ if __name__ == "__main__":
         get_summary_save_keys(), posterior_samples, info_dict
     )
     with open(summary_output, "w") as f:
-        yaml.dump(summary, f, sort_keys=True)
+        json.dump(info_dict, f, ensure_ascii=False, indent=4)

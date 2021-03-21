@@ -7,6 +7,7 @@ from epimodel.preprocessing import PreprocessedData
 from epimodel.script_utils import *
 
 import argparse
+import json
 import numpyro
 import numpy as np
 from datetime import datetime
@@ -77,7 +78,7 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
@@ -94,7 +95,6 @@ if __name__ == "__main__":
         model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"region_indices": region_indices}
+    info_dict["exp_config"] = {"region_indices": region_indices.tolist(), "seed": args.seed}
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 
@@ -112,4 +112,4 @@ if __name__ == "__main__":
         get_summary_save_keys(), posterior_samples, info_dict
     )
     with open(summary_output, "w") as f:
-        yaml.dump(summary, f, sort_keys=True)
+        json.dump(info_dict, f, ensure_ascii=False, indent=4)

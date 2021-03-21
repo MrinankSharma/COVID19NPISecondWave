@@ -6,6 +6,7 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
+import json
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
@@ -49,7 +50,7 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     posterior_samples, _, info_dict, _ = run_model(
@@ -64,7 +65,6 @@ if __name__ == "__main__":
         model_kwargs=config["model_kwargs"],
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
@@ -82,4 +82,4 @@ if __name__ == "__main__":
         get_summary_save_keys(), posterior_samples, info_dict
     )
     with open(summary_output, "w") as f:
-        yaml.dump(summary, f, sort_keys=True)
+        json.dump(info_dict, f, ensure_ascii=False, indent=4)
