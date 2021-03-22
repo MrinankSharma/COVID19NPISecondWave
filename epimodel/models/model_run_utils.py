@@ -31,7 +31,7 @@ def run_model(
     )
     nuts_kernel = NUTS(
         model_func,
-        init_strategy= init_to_median,
+        init_strategy=init_to_median,
         target_accept_prob=target_accept,
         max_tree_depth=max_tree_depth,
         find_heuristic_step_size=heuristic_step_size,
