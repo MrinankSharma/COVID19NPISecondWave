@@ -7,6 +7,7 @@ from epimodel.models.models import default_model_uk_ifriar
 from epimodel.script_utils import *
 
 import argparse
+import json
 import numpyro
 from datetime import datetime
 
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]
@@ -60,7 +61,6 @@ if __name__ == "__main__":
         model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
@@ -78,4 +78,4 @@ if __name__ == "__main__":
         get_summary_save_keys(), posterior_samples, info_dict
     )
     with open(summary_output, "w") as f:
-        yaml.dump(summary, f, sort_keys=True)
+        json.dump(info_dict, f, ensure_ascii=False, indent=4)

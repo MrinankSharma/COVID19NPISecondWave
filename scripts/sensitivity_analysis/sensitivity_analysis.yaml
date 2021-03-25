@@ -1,23 +1,3 @@
-holdout:
-  experiment_file: holdout.py
-  experiment_tag: holdout
-  args:
-    rg: [[103, 100, 73, 20,  47,  28,  36,  63,  15]] # we want to actually holdout them all at once, so nested list
-
-leaveout:
-  experiment_file: leaveout.py
-  experiment_tag: leaveout
-  args:
-    cs:
-      - [0]
-      - [1]
-      - [2]
-      - [3]
-      - [4]
-      - [5]
-      - [6]
-
-
 default:
   experiment_file: default.py
   experiment_tag: default
@@ -44,7 +24,7 @@ basic_R_prior_scale:
       - 0.2
       - 0.4
     basic_R_mean:
-      - 1.5
+      - 1.35
 
 england_ifr_iar:
   experiment_file: england_ifr_iar.py
@@ -131,7 +111,6 @@ intervention_prior:
       - half_normal 0.15
       - asymmetric_laplace 20.
       - normal 0.15
-      - normal 2.
 
 npi_leaveout:
   experiment_file: npi_leaveout.py
@@ -168,16 +147,6 @@ output_noise_scale_prior:
       - 15.
       - 20.
       - 2.5
-
-ppool_variability:
-  experiment_file: ppool_variability.py
-  experiment_tag: ppool_variability
-  args:
-    ppool_total_variability:
-      - 0.05
-      - 0.1
-      - 0.2
-      - 0.25
 
 r_walk_noise_scale_prior:
   experiment_file: r_walk_noise_scale_prior.py
@@ -219,24 +188,16 @@ seeding_scaling:
       - 3.5
       - 4.
 
-stay_home_agg:
-  experiment_file: stay_home_agg.py
-  experiment_tag: stay_home_agg
-  args:
-    stay_home_agg:
-      - or
-      - drop_stay_home
-
-window_of_analysis:
-  experiment_file: window_of_analysis.py
-  experiment_tag: window_of_analysis
-  args:
-    window_of_analysis:
-      - 2020-08-01 2020-12-25
-      - 2020-09-01 2021-01-09
-
 bootstrap:
   experiment_file: bootstrap.py
   experiment_tag: boostrap
   args:
-    seed: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    seed: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+
+# new that I need to run
+delay_schools:
+  experiment_file: delay_schools.py
+  experiment_tag: delay_schools
+  args:
+    n_days_delay:
+      - 5
