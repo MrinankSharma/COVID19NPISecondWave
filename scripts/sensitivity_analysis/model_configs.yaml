@@ -1,0 +1,4 @@
+# default model config does not override anything
+default:
+  model_kwargs: {}
+  featurize_kwargs: {}
