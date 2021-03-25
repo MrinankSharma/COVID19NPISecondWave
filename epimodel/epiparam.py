@@ -6,27 +6,18 @@ Calculate delay distributions and generate delay parameter dictionaries for regi
 Mostly copied from https://github.com/epidemics/COVIDNPIs/blob/manuscript/epimodel/pymc3_models/epi_params.py
 """
 
+import numpy as np
 import pprint
 
-import numpy as np
 
-
-class EpidemiologicalParameters:
+class EpidemiologicalParameters():
     """
     Epidemiological Parameters Class
     Wrapper Class, contains information about the epidemiological parameters used in this project.
     """
 
-    def __init__(
-        self,
-        generation_interval=None,
-        incubation_period=None,
-        onset_to_death_delay=None,
-        onset_to_case_delay=None,
-        gi_truncation=28,
-        cd_truncation=32,
-        dd_truncation=64,
-    ):
+    def __init__(self, generation_interval=None, infection_to_fatality_delay=None,
+                 infection_to_reporting_delay=None):
         """
         Constructor
         Input dictionaries corresponding to the relevant delay with the following fields:
@@ -40,59 +31,43 @@ class EpidemiologicalParameters:
         :param numpy seed used for randomisation
         :param generation_interval: dictionary containing relevant distribution information
         :param incubation_period : dictionary containing relevant distribution information
-        :param onset_to_case_delay dictionary containing relevant distribution information
-        :param onset_to_death_delay: dictionary containing relevant distribution information
+        :param infection_to_fatality_delay: dictionaries containing relevant distribution information
+        :param infection_to_reporting_delay: dictionaries containing relevant distribution information
         """
         if generation_interval is not None:
             self.generation_interval = generation_interval
         else:
             self.generation_interval = {
-                "mean": 4.83,  # 4.31 to 5.4
-                "sd": 1.73,
-                "dist": "gamma",
+                'mean': 5.06,
+                'sd': 2.11,
+                'dist': 'gamma',
             }
 
-        if incubation_period is not None:
-            self.incubation_period = incubation_period
+        if infection_to_fatality_delay is not None:
+            self.infection_to_fatality_delay = infection_to_fatality_delay
         else:
-            self.incubation_period = {"mean": 5.53, "sd": 4.73, "dist": "gamma"}
+            self.infection_to_fatality_delay = {
+                'mean': 21.82,
+                'disp': 14.26,
+                'dist': 'negbinom',
+            }
 
-        if onset_to_case_delay is not None:
-            self.onset_to_case_delay = onset_to_case_delay
+        if infection_to_reporting_delay is not None:
+            self.infection_to_reporting_delay = infection_to_reporting_delay
         else:
-            self.onset_to_case_delay = {"mean": 5.2775, "sd": 3.7466, "dist": "gamma"}
+            self.infection_to_reporting_delay = {
+                'mean': 10.93,
+                'disp': 5.41,
+                'dist': 'negbinom',
+            }
 
-        if onset_to_death_delay is not None:
-            self.onset_to_death_delay = onset_to_death_delay
-        else:
-            self.onset_to_death_delay = {"mean": 18.6063, "sd": 13.618, "dist": "gamma"}
+        self.DPCv, self.DPDv, self.GIv = self.generate_all_delay_vectors()
 
-        self.gi_truncation = gi_truncation
-        self.cd_truncation = cd_truncation
-        self.dd_truncation = dd_truncation
-
-        self.generate_delays()
-
-    def generate_delays(self, nRv=int(1e7)):
-        self.GIv = self.generate_dist_vector(
-            self.generation_interval, nRv, self.gi_truncation
-        )
-        self.GI_projmat = np.zeros((self.GIv.size - 1, self.GIv.size - 1))
-        for i in range(self.GIv.size - 2):
-            self.GI_projmat[i + 1, i] = 1
+        # note: the
+        self.GI_projmat = np.zeros((self.GIv.size-1, self.GIv.size-1))
+        for i in range(self.GIv.size-2):
+            self.GI_projmat[i+1, i] = 1
         self.GI_projmat[:, -1] = self.GIv[:, ::-1][:, :-1]
-        self.GI_flat_rev = self.GIv[:, 1:][:, ::-1].flatten()
-
-        self.DPC = self.generate_dist_vector(
-            [self.incubation_period, self.onset_to_case_delay],
-            int(1e7),
-            self.cd_truncation,
-        )
-        self.DPD = self.generate_dist_vector(
-            [self.incubation_period, self.onset_to_death_delay],
-            int(1e7),
-            self.dd_truncation,
-        )
 
     def generate_dist_samples(self, dist, nRVs):
         """
@@ -103,14 +78,14 @@ class EpidemiologicalParameters:
         :return: samples
         """
         # specify seed because everything here is random!!
-        mean = dist["mean"]
-        if dist["dist"] == "gamma":
-            sd = dist["sd"]
+        mean = dist['mean']
+        if dist['dist'] == 'gamma':
+            sd = dist['sd']
             k = mean ** 2 / sd ** 2
             theta = sd ** 2 / mean
             samples = np.random.gamma(k, theta, size=nRVs)
-        elif dist["dist"] == "negbinom":
-            disp = dist["mean"]
+        elif dist['dist'] == 'negbinom':
+            disp = dist['mean']
             p = disp / (disp + mean)
             samples = np.random.negative_binomial(disp, p, size=nRVs)
 
@@ -123,8 +98,6 @@ class EpidemiologicalParameters:
         :param max: Truncation.
         :return: pmf - discretised distribution.
         """
-
-        # print(f"Sample mean: {np.mean(samples)} Sample std: {np.std(samples)}")
         bins = np.arange(-1.0, float(max_int))
         bins[2:] += 0.5
 
@@ -132,21 +105,18 @@ class EpidemiologicalParameters:
         # normalise
         pmf = counts / np.sum(counts)
         pmf = pmf.reshape((1, pmf.size))
-
-        # print(self.generate_pmf_statistics_str(pmf))
         return pmf
 
-    def generate_pmf_statistics_str(self, delay_prob_full):
+    def generate_pmf_statistics_str(self, delay_prob):
         """
         Make mean and variance of delay string.
         :param delay_prob: delay to compute statistics of.
         :return: Information string.
         """
-        delay_prob = delay_prob_full.flatten()
         n_max = delay_prob.size
         mean = np.sum([(i) * delay_prob[i] for i in range(n_max)])
         var = np.sum([(i ** 2) * delay_prob[i] for i in range(n_max)]) - mean ** 2
-        return f"mean: {mean:.3f}, sd: {var ** 0.5:.3f}, max: {n_max}"
+        return f'mean: {mean:.3f}, sd: {var ** 0.5:.3f}, max: {n_max}'
 
     def generate_dist_vector(self, dist, nRVs=int(1e7), truncation=28):
         """
@@ -156,36 +126,44 @@ class EpidemiologicalParameters:
         :param max_gi: int - reporting delay truncation
         :return: discretised generation interval
         """
-        if isinstance(dist, dict):
-            samples = self.generate_dist_samples(dist, nRVs)
-        elif isinstance(dist, list):
-            samples = np.zeros(nRVs)
-            for d in dist:
-                samples = samples + self.generate_dist_samples(d, nRVs)
-
+        samples = self.generate_dist_samples(dist, nRVs)
         return self.discretise_samples(samples, truncation)
 
-    def R_to_daily_growth(self, R):
-        gi_beta = self.generation_interval["mean"] / self.generation_interval["sd"] ** 2
-        gi_alpha = (
-            self.generation_interval["mean"] ** 2 / self.generation_interval["sd"] ** 2
-        )
+    def generate_all_delay_vectors(self, nRVs=int(1e7), max_reporting=32, max_fatality=48, max_gi=28):
+        """
+        Generate reporting and fatality discretised delays using Monte Carlo sampling.
 
-        g = np.exp(gi_beta * (R ** (1 / gi_alpha) - 1))
+        :param nRVs: int - number of random variables used for integration
+        :param max_reporting: int - reporting delay truncation
+        :param max_fatality: int - death delay truncation
+        :param max_gi: int - generation interval truncation
+        :return: reporting_delay, fatality_delay, generation interval tuple of numpy arrays
+        """
+
+        delays = [self.infection_to_reporting_delay, self.infection_to_fatality_delay, self.generation_interval]
+        truncations = [max_reporting, max_fatality, max_gi]
+        delays_list = [self.generate_dist_vector(delay, nRVs, truncation) for delay, truncation in
+                       zip(delays, truncations)]
+
+        return tuple(delays_list)
+
+    def R_to_daily_growth(self, R):
+        gi_beta = self.generation_interval['mean'] / self.generation_interval['sd'] ** 2
+        gi_alpha = self.generation_interval['mean'] ** 2 / self.generation_interval['sd'] ** 2
+
+        g = np.exp(gi_beta * (R ** (1/ gi_alpha) - 1))
         return g
 
     def summarise_parameters(self):
         """
         Print summary of parameters.
         """
-        print(
-            "Epidemiological Parameters Summary\n"
-            "----------------------------------\n"
-        )
-        print("Generation Interval")
+        print('Epidemiological Parameters Summary\n'
+              '----------------------------------\n')
+        print('Generation Interval')
         pprint.pprint(self.generation_interval)
-        print("Infection to Reporting Delay")
+        print('Infection to Reporting Delay')
         pprint.pprint(self.infection_to_reporting_delay)
-        print("Infection to Fatality Delay")
+        print('Infection to Fatality Delay')
         pprint.pprint(self.infection_to_fatality_delay)
-        print("----------------------------------\n")
+        print('----------------------------------\n')
