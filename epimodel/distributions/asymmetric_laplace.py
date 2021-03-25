@@ -1,8 +1,13 @@
+"""
+numpyro asymmetric laplace distribution
+
+used for NPI effectiveness prior
+"""
+
 import jax.numpy as jnp
 import jax.random as random
 from jax import lax
 from numpyro.distributions import constraints
-from numpyro.distributions.continuous import Normal
 from numpyro.distributions.distribution import Distribution
 from numpyro.distributions.util import promote_shapes, validate_sample
 
