@@ -63,11 +63,13 @@ if __name__ == "__main__":
 
     for school_npi in school_npis:
         school_npi_index = data.CMs.index(school_npi)
-        new_active_cms[:, school_npi_index, args.n_days_delay:] = data.active_cms[
-            :, school_npi_index, :-args.n_days_delay
+        new_active_cms[:, school_npi_index, args.n_days_delay :] = data.active_cms[
+            :, school_npi_index, : -args.n_days_delay
         ]
-        new_active_cms[:, school_npi_index, :args.n_days_delay] = (
-            data.active_cms[:, school_npi_index, 0].reshape((nRs, 1)).repeat(args.n_days_delay, axis=-1)
+        new_active_cms[:, school_npi_index, : args.n_days_delay] = (
+            data.active_cms[:, school_npi_index, 0]
+            .reshape((nRs, 1))
+            .repeat(args.n_days_delay, axis=-1)
         )
 
     data.active_cms = new_active_cms
