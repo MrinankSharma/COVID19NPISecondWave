@@ -103,7 +103,10 @@ if __name__ == "__main__":
     info_dict["featurize_kwargs"] = config["featurize_kwargs"]
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
-    info_dict["exp_config"] = {"region_indices": region_indices.tolist(), "seed": args.seed}
+    info_dict["exp_config"] = {
+        "region_indices": region_indices.tolist(),
+        "seed": args.seed,
+    }
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
 

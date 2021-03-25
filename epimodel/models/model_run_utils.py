@@ -86,16 +86,20 @@ def run_model(
     ).tolist()
     info_dict["warmup"]["inverse_mass_matrix"] = {}
 
-    all_mass_mats = jnp.array(jnp.array_split(
+    all_mass_mats = jnp.array(
+        jnp.array_split(
             mcmc.get_extra_fields()["adapt_state"].inverse_mass_matrix,
             num_chains,
             axis=0,
-    ))
+        )
+    )
 
     print(all_mass_mats.shape)
 
     for i in range(num_chains):
-        info_dict["warmup"]["inverse_mass_matrix"][f"chain_{i}"] = all_mass_mats[i, -1, :].tolist()
+        info_dict["warmup"]["inverse_mass_matrix"][f"chain_{i}"] = all_mass_mats[
+            i, -1, :
+        ].tolist()
 
     info_dict["warmup"]["mean_accept_prob"] = np.array(
         mcmc.get_extra_fields()["mean_accept_prob"]
