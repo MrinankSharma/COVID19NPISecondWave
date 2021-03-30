@@ -1,5 +1,5 @@
 """
-:code:`utils.py`
+:code:`script_utils.py`
 
 Utilities to support the use of command line sensitivity experiments
 """
@@ -12,6 +12,12 @@ from epimodel.models import *
 
 
 def get_model_func_from_str(model_type_str):
+    """
+    link model function string to actual function
+
+    :param model_type_str:
+    :return: model function
+    """
     if model_type_str == "default":
         return default_model
 
@@ -27,6 +33,11 @@ def get_tree_depth_from_model_str(model_type_str):
 
 
 def add_argparse_arguments(argparse):
+    """
+    add argparse arguments to scripts
+
+    :param argparse: argparse object
+    """
     argparse.add_argument(
         "--model_type",
         dest="model_type",
@@ -76,6 +87,12 @@ def load_model_config(model_config_str):
 
 
 def pprint_mb_dict(d):
+    """
+    pretty print dictionary
+
+    :param d:
+    :return:
+    """
     print("Model Build Dict" "----------------")
 
     for k, v in d.items():
@@ -83,6 +100,14 @@ def pprint_mb_dict(d):
 
 
 def generate_base_output_dir(model_type, model_config, exp_tag):
+    """
+    standardise output directory
+
+    :param model_type:
+    :param model_config:
+    :param exp_tag:
+    :return: output directory
+    """
     out_path = os.path.join(
         "sensitivity_analysis", f"{model_type}_c{model_config}", exp_tag
     )
@@ -93,6 +118,9 @@ def generate_base_output_dir(model_type, model_config, exp_tag):
 
 
 def get_summary_save_keys():
+    """
+    :return: numpyro variables to save, if available
+    """
     return ["alpha_i"]
 
 

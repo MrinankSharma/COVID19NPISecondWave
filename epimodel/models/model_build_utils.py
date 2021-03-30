@@ -10,6 +10,13 @@ from epimodel.distributions import AsymmetricLaplace
 
 
 def sample_intervention_effects(nCMs, intervention_prior=None):
+    """
+    Sample interventions from some options
+
+    :param nCMs: number of interventions
+    :param intervention_prior: dictionary with relevant keys. usually type and scale
+    :return: sample parameters
+    """
     if intervention_prior is None:
         intervention_prior = {
             "type": "asymmetric_laplace",
@@ -51,6 +58,13 @@ def sample_intervention_effects(nCMs, intervention_prior=None):
 
 
 def sample_basic_R(nRs, basic_r_prior=None):
+    """
+    Sample basic r
+
+    :param nRs: number of regions
+    :param basic_r_prior: dict contains basic r prior info.
+    :return: basic R
+    """
     if basic_r_prior is None:
         basic_r_prior = {"mean": 1.35, "type": "trunc_normal", "variability": 0.3}
 
@@ -70,6 +84,16 @@ def sample_basic_R(nRs, basic_r_prior=None):
 
 
 def seed_infections(seeding_scale, nRs, nDs, seeding_padding, total_padding):
+    """
+    Seed infections
+
+    :param seeding_scale: seeding scale prior (used for lognormal prior)
+    :param nRs: number of regions
+    :param nDs: number of days
+    :param seeding_padding: number of days of seeding
+    :param total_padding: number of days of padding (same as gi trunctation)
+    :return: (initial infections (nRs x total_padding), total_infections placeholder (nRs x (seeding_padding + nDs))) tuple
+    """
     total_infections_placeholder = jnp.zeros((nRs, seeding_padding + nDs))
     seeding = numpyro.sample("seeding", dist.LogNormal(jnp.zeros((nRs, 1)), 1.0))
     init_infections = jnp.zeros((nRs, total_padding))
@@ -86,7 +110,7 @@ def get_discrete_renewal_transition(ep, type="noiseless"):
     Create discrete renewal transition function, used by `jax.lax.scan`
 
     :param ep: EpidemiologicalParameters() objective
-
+    :param type: either noiseless, optim, or matmul
     :return: Discrete Renewal Transition function, with relevant GI parameters
     """
 
@@ -144,6 +168,13 @@ def get_discrete_renewal_transition(ep, type="noiseless"):
 
 
 def get_output_delay_transition(seeding_padding, data):
+    """
+    output delay scan, if using country specific delays
+
+    :param seeding_padding: gi trunction // number of days seeding
+    :param data: Preprocessed data
+    :return: transition function
+    """
     def output_delay_transition(loop_carry, scan_slice):
         # this scan function scans over local areas, using their country specific delay, rather than over days
         # therefore the input functions are ** not ** transposed.

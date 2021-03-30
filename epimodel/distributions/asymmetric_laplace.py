@@ -1,7 +1,8 @@
 """
 numpyro asymmetric laplace distribution
 
-used for NPI effectiveness prior
+used for NPI effectiveness prior. See https://en.wikipedia.org/wiki/Asymmetric_Laplace_distribution for more information
+We use the same parameterisation as used on wikipedia
 """
 
 import jax.numpy as jnp
@@ -13,7 +14,7 @@ from numpyro.distributions.util import promote_shapes, validate_sample
 
 
 class AsymmetricLaplace(Distribution):
-    reparametrized_params = ["scale", "asymmetry"]
+    reparametrized_params = ["scale", "asymmetry"] # see https://en.wikipedia.org/wiki/Asymmetric_Laplace_distribution for parameters
     arg_constraints = {"scale": constraints.positive, "asymmetry": constraints.positive}
     support = constraints.real
 

@@ -26,6 +26,25 @@ def run_model(
     chain_method="parallel",
     heuristic_step_size=True,
 ):
+    """
+    Model run utility
+
+    :param model_func: numpyro model
+    :param data: PreprocessedData object
+    :param ep: EpidemiologicalParameters object
+    :param num_samples: number of samples
+    :param num_warmup: number of warmup samples
+    :param num_chains: number of chains
+    :param target_accept: target accept
+    :param max_tree_depth: maximum treedepth
+    :param save_results: whether to save full results
+    :param output_fname: output filename
+    :param model_kwargs: model kwargs -- extra arguments for the model function
+    :param save_json: whether to save json
+    :param chain_method: Numpyro chain method to use
+    :param heuristic_step_size: whether to find a heuristic step size
+    :return: posterior_samples, warmup_samples, info_dict (dict with assorted diagnostics), Numpyro mcmc object
+    """
     print(
         f"Running {num_chains} chains, {num_samples} per chain with {num_warmup} warmup steps"
     )

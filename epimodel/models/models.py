@@ -1,3 +1,6 @@
+"""
+Models
+"""
 import jax.scipy.signal
 import jax.numpy as jnp
 import jax
@@ -18,6 +21,21 @@ def default_model(
     output_noise_scale_prior=5.0,
     **kwargs,
 ):
+    """
+    Main model.
+
+    :param data: PreprocessedData object
+    :param ep: EpidemiologicalParameters object
+    :param intervention_prior: intervention prior dict
+    :param basic_R_prior: basic r prior dict
+    :param r_walk_noise_scale_prior: scale of random walk noise scale prior
+    :param r_walk_period: period of random walk
+    :param n_days_seeding: number of days of seeding
+    :param seeding_scale: scale of seeded infection prior
+    :param infection_noise_scale: scale of infection noise
+    :param output_noise_scale_prior: output noise scale prior
+    :param kwargs: additional kwargs (not used, but maintain function signature)
+    """
     for k in kwargs.keys():
         print(f"{k} is not being used")
 
@@ -28,10 +46,11 @@ def default_model(
     # transmission reduction
     cm_reduction = jnp.sum(data.active_cms * alpha_i.reshape((1, data.nCMs, 1)), axis=1)
 
+    # sample basic R
     basic_R = sample_basic_R(data.nRs, basic_R_prior)
 
     # number of 'noise points'
-    # -2 since no change for the first 3 weeks.
+    # -1 since no change for the first 2 weeks.
     nNP = int(data.nDs / r_walk_period) - 1
 
     r_walk_noise_scale = numpyro.sample(
@@ -188,6 +207,21 @@ def default_model_uk_ifriar(
     output_noise_scale_prior=5.0,
     **kwargs,
 ):
+    """
+    Identical to base model, except use hard coded IFR/IAR estimates.
+
+    :param data: PreprocessedData object
+    :param ep: EpidemiologicalParameters object
+    :param intervention_prior: intervention prior dict
+    :param basic_R_prior: basic r prior dict
+    :param r_walk_noise_scale_prior: scale of random walk noise scale prior
+    :param r_walk_period: period of random walk
+    :param n_days_seeding: number of days of seeding
+    :param seeding_scale: scale of seeded infection prior
+    :param infection_noise_scale: scale of infection noise
+    :param output_noise_scale_prior: output noise scale prior
+    :param kwargs: additional kwargs (not used, but maintain function signature)
+    """
     for k in kwargs.keys():
         print(f"{k} is not being used")
 
@@ -722,7 +756,6 @@ def default_model_uk_ifriar(
 def random_walk_model(
     data,
     ep,
-    intervention_prior=None,
     basic_R_prior=None,
     r_walk_noise_scale_prior=0.15,
     r_walk_period=7,
@@ -732,6 +765,20 @@ def random_walk_model(
     output_noise_scale_prior=5.0,
     **kwargs,
 ):
+    """
+    Random walk only model
+
+    :param data: PreprocessedData object
+    :param ep: EpidemiologicalParameters object
+    :param basic_R_prior: basic r prior dict
+    :param r_walk_noise_scale_prior: scale of random walk noise scale prior
+    :param r_walk_period: period of random walk
+    :param n_days_seeding: number of days of seeding
+    :param seeding_scale: scale of seeded infection prior
+    :param infection_noise_scale: scale of infection noise
+    :param output_noise_scale_prior: output noise scale prior
+    :param kwargs: additional kwargs (not used, but maintain function signature)
+    """
     for k in kwargs.keys():
         print(f"{k} is not being used")
 

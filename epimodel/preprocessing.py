@@ -226,6 +226,19 @@ class PreprocessedData(object):
         gatherings_aggregation_type="weaker",
         keep_merged_value=False,
     ):
+        """
+        Featurise i.e., convert raw NPIs to binary features
+
+        :param drop_npi_filter: list of dictionaries containing npis to ignore
+        :param public_gathering_thresholds: public gathering thresholds
+        :param private_gathering_thresholds: private gathering thresholds
+        :param mask_thresholds: mask thresholds
+        :param household_stays_on: whether the household feature should stay on when we hit a gathering limit of 2 or less
+        :param household_upper_limit: gathering limit under which to count the household restriction
+        :param gatherings_aggregation: how to aggregate gatherings. either `drop_outdoor, out_in, pub_priv`
+        :param gatherings_aggregation_type: either `weaker` or `stricter`
+        :param keep_merged_value: keep merged values (gatherings)
+        """
         if self.featurized is True:
             print(
                 "Data has already been featurized. New featurisation will not take place"
@@ -508,34 +521,20 @@ class PreprocessedData(object):
         self.featurized = True
 
     def mask_region_by_index(self, region_index, days_shown=90):
+        """
+        mask end of region
+
+        :param region_index: region index
+        :param days_shown: num days to show
+        """
         self.new_cases[region_index, days_shown:] = np.ma.masked
         self.new_deaths[region_index, days_shown:] = np.ma.masked
 
-    def remove_country_by_index(self, c_i):
-        # v lazy
-        regions_to_remove = self.C_indices[c_i]
-        r_mask = np.ones(self.nRs, dtype=bool)
-        r_mask[regions_to_remove] = False
-
-        self.active_cms = self.active_cms[r_mask, :, :]
-        self.new_cases = self.new_cases[r_mask, :]
-        self.new_deaths = self.new_deaths[r_mask, :]
-        self.Rs = np.array(self.Rs)[r_mask].tolist()
-        self.Cs = np.array(self.Cs)[r_mask].tolist()
-
-        C_indices = []
-        self.unique_Cs = sorted(list(set(self.Cs)))
-        for uc in self.unique_Cs:
-            a_indices = np.nonzero([uc == c for c in self.Cs])[0]
-            C_indices.append(a_indices)
-
-        self.C_indices = C_indices
-        self.RC_mat = np.zeros((self.nRs, self.nCs))
-        for r_i, c in enumerate(self.Cs):
-            C_ind = self.unique_Cs.index(c)
-            self.RC_mat[r_i, C_ind] = 1
-
     def remove_region_by_index(self, r_i):
+        """
+        fully remove region
+        :param r_i: region index
+        """
         # remove the index
         del self.Rs[r_i]
         del self.Cs[r_i]
@@ -556,13 +555,6 @@ class PreprocessedData(object):
             C_ind = self.unique_Cs.index(c)
             self.RC_mat[r_i, C_ind] = 1
 
-        print(self.nRs)
-        print(self.nDs)
-        print(self.nCs)
-        print(self.new_cases.shape)
-        print(self.new_deaths.shape)
-        print(self.active_cms.shape)
-
     def mask_new_variant(
         self,
         maximum_fraction_voc=0.1,
@@ -570,6 +562,15 @@ class PreprocessedData(object):
         extra_days_cases=5,
         extra_days_deaths=11,
     ):
+        """
+        mask new variant
+
+        :param maximum_fraction_voc: maximum fraction
+        :param new_variant_fraction_fname: filename with raw data
+        :param extra_days_cases: extra days of cases
+        :param extra_days_deaths: extra days of deaths
+        :return:
+        """
         variant_df = pd.read_csv(new_variant_fraction_fname)
         variant_df["date"] = pd.to_datetime(variant_df["date"], format="%Y-%m-%d")
         variant_df["nuts3"] = variant_df["nuts3"].replace(
@@ -646,6 +647,13 @@ class PreprocessedData(object):
             self.number_masked.append(max(days_masked_npi))
 
     def mask_from_date(self, date_str, extra_days_cases=5, extra_days_deaths=11):
+        """
+        mask from a certain date
+
+        :param date_str:
+        :param extra_days_cases:
+        :param extra_days_deaths:
+        """
         dt = pd.to_datetime(date_str)
         if dt not in self.Ds:
             raise ValueError("Requested date_str not in Ds")
