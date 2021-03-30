@@ -57,4 +57,4 @@ python scripts/sensitivity_dispatcher.py --max_parallel_runs 24 --model_type def
 All plotting code is in the `notebooks/final_results` folder. See `validation_plotter` (Fig. 3), `main_result_plotter` (Fig. 1, other plots also) and `sensitivity_analysis_plotter` (Appendix plots). 
 
 # Questions?
-Please email Mrinank Sharma for questions regarding the codebase.
+Please email Mrinank Sharma (`mrinank` at `robots` dot `ac` dot `uk`) for questions regarding the codebase.
