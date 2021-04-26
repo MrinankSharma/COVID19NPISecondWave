@@ -27,7 +27,7 @@ argparser.add_argument(
     default="default",
     dest="model_type",
     type=str,
-    nargs="+"
+    nargs="+",
     help="Model type to use for requested sensitivity analyses",
 )
 
