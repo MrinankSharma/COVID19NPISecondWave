@@ -559,8 +559,8 @@ class PreprocessedData(object):
         self,
         maximum_fraction_voc=0.1,
         new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
-        extra_days_cases=5,
-        extra_days_deaths=11,
+        extra_days_cases=0, #data is case data, not infection data. thus immediately mask cases
+        extra_days_deaths=6,
     ):
         """
         mask new variant
