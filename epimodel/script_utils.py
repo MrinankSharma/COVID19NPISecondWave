@@ -9,6 +9,7 @@ import numpy as np
 import yaml
 
 from epimodel.models import *
+from epimodel.models.models import ppool_model, default_model_shared_output_scale
 
 
 def get_model_func_from_str(model_type_str):
@@ -20,6 +21,12 @@ def get_model_func_from_str(model_type_str):
     """
     if model_type_str == "default":
         return default_model
+    if model_type_str == "pool":
+        return ppool_model
+    if model_type_str == "pool_l":
+        return lambda x: ppool_model(x, ppool_total_scale=0.20)
+    if model_type_str == "shared_output":
+        return default_model_shared_output_scale
 
 
 def get_target_accept_from_model_str(model_type_str):
