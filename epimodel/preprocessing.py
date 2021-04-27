@@ -238,7 +238,6 @@ class PreprocessedData(object):
             "Leisure Venues Closed",
             "Retail Closed",
             "Curfew",
-            "Childcare Closed",
             "Primary Schools Closed",
             "Secondary Schools Closed",
             "Universities Away",
