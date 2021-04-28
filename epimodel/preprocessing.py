@@ -285,6 +285,10 @@ class PreprocessedData(object):
                     "query": "All Face-to-Face Businesses Closed",
                     "type": "equals",
                 },  # same as the retail feature
+                {
+                    "query": "Childcare Closed",
+                    "type": "equals",
+                },  # same as the retail feature
             ]
 
         if public_gathering_thresholds is None:
