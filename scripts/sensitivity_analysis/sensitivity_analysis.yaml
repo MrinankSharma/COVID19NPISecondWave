@@ -32,7 +32,7 @@ england_ifr_iar:
   args: {}
 
 cases_delay_mean:
-  experiment_file: epiparam_mean.py
+  experiment_file: multivariate.py
   experiment_tag: cases_delay_mean
   args:
     cases_delay_mean_shift:
@@ -47,7 +47,7 @@ cases_delay_mean:
       - 0.0
 
 death_delay_mean:
-  experiment_file: epiparam_mean.py
+  experiment_file: multivariate.py
   experiment_tag: death_delay_mean
   args:
     cases_delay_mean_shift:
@@ -62,7 +62,7 @@ death_delay_mean:
       - 0.0
 
 gen_int_mean:
-  experiment_file: epiparam_mean.py
+  experiment_file: multivariate.py
   experiment_tag: gen_int_mean
   args:
     cases_delay_mean_shift:

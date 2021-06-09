@@ -57,7 +57,7 @@ argparser.add_argument(
 
 argparser.add_argument(
     "--num_samples",
-    default=1250,
+    default=1000,
     dest="num_samples",
     type=int,
     help="Num samples to use",
@@ -65,7 +65,7 @@ argparser.add_argument(
 
 argparser.add_argument(
     "--num_warmup",
-    default=250,
+    default=500,
     dest="num_warmup",
     type=int,
     help="Num warmup samples to use",
