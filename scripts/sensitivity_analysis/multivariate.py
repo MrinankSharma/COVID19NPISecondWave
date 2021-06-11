@@ -88,9 +88,9 @@ if __name__ == "__main__":
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     basic_R_prior = {
-        "mean": r0_mean,
+        "mean": float(r0_mean),
         "type": "trunc_normal",
-        "variability": r0_scale,
+        "variability": float(r0_scale),
     }
 
     model_build_dict = config["model_kwargs"]
@@ -123,17 +123,17 @@ if __name__ == "__main__":
     info_dict["start_dt"] = ts_str
     info_dict["exp_tag"] = args.exp_tag
     info_dict["exp_config"] = {
-        "cases_delay_mean_shift": cd_shift,
-        "deaths_delay_mean_shift": dd_shift,
-        "gen_int_mean_shift": gi_shift,
-        "maximum_fraction_voc": max_frac_voc,
-        "infection_noise_scale": inf_noise_scale,
-        "r_walk_noise_scale_prior": rw_noise_scale_prior,
-        "output_noise_scale_prior":  output_noise_scale_prior,
+        "cases_delay_mean_shift": float(cd_shift),
+        "deaths_delay_mean_shift": float(dd_shift),
+        "gen_int_mean_shift": float(gi_shift),
+        "maximum_fraction_voc": float(max_frac_voc),
+        "infection_noise_scale": float(inf_noise_scale),
+        "r_walk_noise_scale_prior": float(rw_noise_scale_prior),
+        "output_noise_scale_prior":  float(output_noise_scale_prior),
         "basic_R_prior": basic_R_prior,
-        "seeding_scale": seeding_scale,
+        "seeding_scale": float(seeding_scale),
         "r_walk_period": int(rw_period),
-        "n_days_seeding": n_days_seeding,
+        "n_days_seeding": float(n_days_seeding),
     }
     info_dict["cm_names"] = data.CMs
     info_dict["data_path"] = get_data_path()
