@@ -32,9 +32,9 @@ if __name__ == "__main__":
     print("Sampling Params")
     np.random.seed(args.seed)
 
-    gi_shift = np.random.choice([-1.5, -0.75, 0, 0.75, 1.5])
-    cd_shift = np.random.choice([-3, -1.5, 0, 1.5, 3])
-    dd_shift = np.random.choice([-3, -1.5, 0, 1.5, 3])
+    gi_shift = np.clip(0.75*np.random.normal(), a_min=-1.5, a_max=1.5)
+    cd_shift = np.clip(1.5*np.random.normal(), a_min=-3, a_max=3)
+    dd_shift = np.clip(1.5*np.random.normal(), a_min=-3, a_max=3)
 
     max_frac_voc = np.random.choice([0.1, 0.15, 0.25, 0.5])
 
@@ -43,8 +43,8 @@ if __name__ == "__main__":
     rw_noise_scale_prior = np.random.choice([0.05, 0.1, 0.15, 0.2, 0.25])
     output_noise_scale_prior = np.random.choice([2.5, 5, 10, 15, 20])
 
-    r0_mean = np.random.choice([1.1, 1.3, 1.35, 1.5, 1.7])
-    r0_scale = np.random.choice([0.1, 0.2, 0.3, 0.4])
+    r0_mean = 1.35+np.clip(0.15*np.random.normal(), a_min=-0.35, a_max=0.35)
+    r0_scale = np.clip(0.3 + 0.1 * np.random.normal(), a_min=0.1, a_max=0.5)
 
     rw_period = np.random.choice([5, 7, 9, 11, 14])
     n_days_seeding = np.random.choice([5, 7, 9, 11, 14])
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     data.featurize(**config["featurize_kwargs"])
     data.mask_new_variant(
         new_variant_fraction_fname=get_new_variant_path(),
-        maximum_fraction_voc=max_frac_voc,
+        maximum_fraction_voc=float(max_frac_voc),
     )
     data.mask_from_date("2021-01-09")
 
@@ -94,11 +94,11 @@ if __name__ == "__main__":
     }
 
     model_build_dict = config["model_kwargs"]
-    model_build_dict["infection_noise_scale"] = inf_noise_scale
-    model_build_dict["r_walk_noise_scale_prior"] = rw_noise_scale_prior
-    model_build_dict["output_noise_scale_prior"] = output_noise_scale_prior
+    model_build_dict["infection_noise_scale"] = int(inf_noise_scale)
+    model_build_dict["r_walk_noise_scale_prior"] = float(rw_noise_scale_prior)
+    model_build_dict["output_noise_scale_prior"] = float(output_noise_scale_prior)
     model_build_dict["basic_R_prior"] = basic_R_prior
-    model_build_dict["seeding_scale"] = seeding_scale
+    model_build_dict["seeding_scale"] = float(seeding_scale)
     model_build_dict["r_walk_period"] = int(rw_period)
     model_build_dict["n_days_seeding"] = int(n_days_seeding)
 
@@ -142,5 +142,6 @@ if __name__ == "__main__":
     summary = load_keys_from_samples(
         get_summary_save_keys(), posterior_samples, info_dict
     )
+
     with open(summary_output, "w") as f:
         json.dump(info_dict, f, ensure_ascii=False, indent=4)
