@@ -6,6 +6,7 @@ from epimodel import EpidemiologicalParameters, run_model, preprocess_data
 from epimodel.script_utils import *
 
 import argparse
+import json
 from datetime import datetime
 
 argparser = argparse.ArgumentParser()
@@ -71,7 +72,6 @@ if __name__ == "__main__":
         model_kwargs=model_build_dict,
         save_results=True,
         output_fname=full_output,
-        save_yaml=False,
         chain_method="parallel",
     )
 
