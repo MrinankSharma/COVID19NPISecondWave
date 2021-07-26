@@ -251,7 +251,6 @@ class PreprocessedData(object):
             "Leisure Venues Closed",
             "Retail Closed",
             "Curfew",
-            "Childcare Closed",
             "Primary Schools Closed",
             "Secondary Schools Closed",
             "Universities Away",
@@ -601,7 +600,6 @@ class PreprocessedData(object):
     def mask_reopening(self, option, npis_to_exclude=None):
         if npis_to_exclude is None:
             npis_to_exclude = [
-                "Childcare Closed",
                 "Primary Schools Closed",
                 "Secondary Schools Closed",
                 "Universities Away",

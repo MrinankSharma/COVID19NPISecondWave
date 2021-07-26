@@ -56,7 +56,7 @@ if __name__ == "__main__":
         args.model_type, args.model_config, args.exp_tag
     )
     ts_str = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
-    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.yaml")
+    summary_output = os.path.join(base_outpath, f"{ts_str}_summary.json")
     full_output = os.path.join(base_outpath, f"{ts_str}_full.netcdf")
 
     model_build_dict = config["model_kwargs"]

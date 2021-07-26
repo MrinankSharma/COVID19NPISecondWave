@@ -253,3 +253,16 @@ window_of_analysis_missing:
     window_of_analysis:
       - 2020-08-01 2020-12-19
       - 2020-08-01 2020-12-12
+
+window_of_analysis_new:
+  experiment_file: window_of_analysis.py
+  experiment_tag: window_of_analysis
+  args:
+    window_of_analysis:
+      - 2020-08-01 2021-01-09
+      - 2020-08-08 2021-01-09
+      - 2020-08-15 2021-01-09
+      - 2020-08-22 2021-01-09
+      - 2020-08-01 2020-12-26
+      - 2020-08-01 2020-12-19
+      - 2020-08-01 2020-12-12

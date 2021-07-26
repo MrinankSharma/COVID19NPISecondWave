@@ -1,0 +1,3 @@
+File `OxCGRT_latest.csv` from Thomas Hale, Noam Angrist, Rafael Goldszmidt, Beatriz Kira, Anna Petherick, Toby Phillips, Samuel Webster, Emily Cameron-Blake, Laura Hallas, Saptarshi Majumdar, and Helen Tatlow. (2021). “A global panel database of pandemic policies (Oxford COVID-19 Government Response Tracker).” Nature Human Behaviour. https://doi.org/10.1038/s41562-021-01079-8. This file has been reproduced in this repo. 
+
+File `fw_alpha.txt` has first wave NPI results from Brauner, J.M., Mindermann, S., Sharma, M., Johnston, D., Salvatier, J., Gavenčiak, T., Stephenson, A.B., Leech, G., Altman, G., Mikulik, V. and Norman, A.J., 2021. Inferring the effectiveness of government interventions against COVID-19. Science, 371(6531), used for third wave prediction experiments. 
