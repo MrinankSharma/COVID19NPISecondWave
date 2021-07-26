@@ -1,0 +1,96 @@
+﻿Name,Type,HASC,AKZ,GKZ,NUTS,Population,Area(km.²),Capital,State Code (middle column of HASC)
+Amstetten,b,AT.NO.AM,AM,305,121,"112,547","1,186",Amstetten,NO
+Baden,b,AT.NO.BN,BN,306,"122,127","139,320",754,Baden,NO
+Bludenz,b,AT.VO.BZ,BZ,801,341,"61,187","1,286",Bludenz,VO
+Braunau am Inn,b,AT.OO.BR,BR,404,311,"98,000","1,040",Braunau am Inn,OO
+Bregenz,b,AT.VO.BG,B,802,"341,342","127,262",865,Bregenz,VO
+Bruck an der Leitha,b,AT.NO.BL,BL,307,127,"42,954",495,Bruck an der Leitha,NO
+Bruck-Mürzzuschlag,b,AT.ST.BZ,BM,621,223,"102,175","2,155",Bruck an der Mur,ST
+Deutschlandsberg,b,AT.ST.DL,DL,603,225,"60,748",864,Deutschlandsberg,ST
+Dornbirn,b,AT.VO.DO,DO,803,342,"82,462",172,Dornbirn,VO
+Eferding,b,AT.OO.EF,EF,405,312,"31,767",260,Eferding,OO
+Eisenstadt,s,AT.BU.ES,E,101,112,"13,147",43,Eisenstadt,BU
+Eisenstadt Umgebung,b,AT.BU.EU,EU,103,112,"40,943",453,Eisenstadt,BU
+Feldkirch,b,AT.VO.FK,FK,804,342,"100,281",278,Feldkirch,VO
+Feldkirchen,b,AT.KA.FE,FE,210,212,"30,363",559,Feldkirchen,KA
+Freistadt,b,AT.OO.FR,FR,406,313,"65,131",994,Freistadt,OO
+Gänserndorf,b,AT.NO.GF,GF,308,"125,126","95,975","1,272",Gänserndorf,NO
+Gmünd,b,AT.NO.GD,GD,309,124,"37,793",787,Gmünd,NO
+Gmunden,b,AT.OO.GM,GM,407,315,"99,595","1,433",Gmunden,OO
+Graz,s,AT.ST.GZ,G,601,221,"264,351",127,Graz,ST
+Graz Umgebung,b,AT.ST.GU,GU,606,221,"143,243","1,103",Graz,ST
+Grieskirchen,b,AT.OO.GR,GR,408,311,"62,632",579,Grieskirchen,OO
+Güssing,b,AT.BU.GS,GS,104,113,"26,662",485,Güssing,BU
+Hallein,b,AT.SZ.HA,HA,502,323,"57,755",669,Hallein,SZ
+Hartberg-Fürstenfeld,b,AT.ST.HF,HF,622,224,"89,486","1,223",Hartberg,ST
+Hermagor,b,AT.KA.HE,HE,203,212,"18,765",809,Hermagor,KA
+Hollabrunn,b,AT.NO.HL,HL,310,125,"50,381","1,011",Hollabrunn,NO
+Horn,b,AT.NO.HO,HO,311,124,"31,510",784,Horn,NO
+Imst,b,AT.TR.IM,IM,702,334,"56,660","1,724",Imst,TR
+Innsbruck,s,AT.TR.IN,I,701,332,"121,076",105,Innsbruck,TR
+Innsbruck Land,b,AT.TR.IL,IL,703,332,"167,082","1,989",Innsbruck,TR
+Jennersdorf,b,AT.BU.JE,JE,105,113,"17,623",253,Jennersdorf,BU
+Kirchdorf an der Krems,b,AT.OO.KI,KI,409,314,"55,607","1,239",Kirchdorf an der Krems,OO
+Kitzbühel,b,AT.TR.KB,KB,704,335,"61,794","1,162",Kitzbühel,TR
+Klagenfurt,s,AT.KA.KG,K,201,211,"94,683",120,Klagenfurt,KA
+Klagenfurt Land,b,AT.KA.KL,KL,204,211,"58,611",766,Klagenfurt,KA
+Korneuburg,b,AT.NO.KO,KO,312,126,"75,423",627,Korneuburg,NO
+Krems an der Donau Land,b,AT.NO.KR,KR,313,124,"55,946",923,Krems an der Donau,NO
+Krems an der Donau Stadt,s,AT.NO.KS,KS,301,124,"24,080",52,Krems an der Donau,NO
+Kufstein,b,AT.TR.KU,KU,705,335,"101,251",969,Kufstein,TR
+Landeck,b,AT.TR.LA,LA,706,334,"43,703","1,595",Landeck,TR
+Leibnitz,b,AT.ST.LB,LB,610,225,"77,371",683,Leibnitz,ST
+Leoben,b,AT.ST.LN,LN,611,223,"62,791","1,099",Leoben,ST
+Lienz,b,AT.TR.LZ,LZ,707,333,"49,553","2,019",Lienz,TR
+Liezen,b,AT.ST.LI,LI,612,222,"79,556","3,268",Liezen,ST
+Lilienfeld,b,AT.NO.LF,LF,314,122,"26,417",932,Lilienfeld,NO
+Linz,s,AT.OO.LS,L,401,312,"190,802",96,Linz,OO
+Linz Land,b,AT.OO.LL,LL,410,312,"139,218",460,Linz,OO
+Mattersburg,b,AT.BU.MA,MA,106,112,"39,100",238,Mattersburg,BU
+Melk,b,AT.NO.ME,ME,315,121,"76,431","1,014",Melk,NO
+Mistelbach,b,AT.NO.MI,MI,316,"125,126","74,075","1,293",Mistelbach,NO
+Mödling,b,AT.NO.MD,MD,317,127,"114,407",277,Mödling,NO
+Murau,b,AT.ST.MU,MU,614,226,"29,254","1,384",Murau,ST
+Murtal,b,AT.ST.MT,MT,620,226,"73,819","1,676",Judenburg,ST
+Neunkirchen,b,AT.NO.NK,NK,318,122,"85,587","1,150",Neunkirchen,NO
+Neusiedl am See,b,AT.BU.ND,ND,107,112,"55,401","1,038",Neusiedl am See,BU
+Oberpullendorf,b,AT.BU.OP,OP,108,111,"37,579",701,Oberpullendorf,BU
+Oberwart,b,AT.BU.OW,OW,109,113,"53,675",732,Oberwart,BU
+Perg,b,AT.OO.PE,PE,411,313,"65,765",613,Perg,OO
+Reutte,b,AT.TR.RE,RE,708,331,"31,711","1,236",Reutte,TR
+Ried im Innkreis,b,AT.OO.RI,RI,412,311,"58,596",584,Ried im Innkreis,OO
+Rohrbach im Mühlkreis,b,AT.OO.RO,RO,413,313,"56,777",827,Rohrbach,OO
+Rust,s,AT.BU.RU,EU,102,112,"1,899",20,Rust,BU
+Salzburg,s,AT.SZ.SS,S,501,323,"148,236",66,Salzburg,SZ
+Salzburg Umgebung,b,AT.SZ.SL,SL,503,323,"143,442","1,005",Salzburg,SZ
+Sankt Johann im Pongau,b,AT.SZ.JO,JO,504,322,"78,394","1,755",Sankt Johann im Pongau,SZ
+Sankt Pölten,s,AT.NO.PS,P,302,123,"52,091",108,Sankt Pölten,NO
+Sankt Pölten Land,b,AT.NO.PL,PL,319,123,"96,628","1,123",Sankt Pölten,NO
+Sankt Veit an der Glan,b,AT.KA.SV,SV,205,213,"56,233","1,494",Sankt Veit an der Glan,KA
+Schärding,b,AT.OO.SD,SD,414,311,"56,565",618,Schärding,OO
+Scheibbs,b,AT.NO.SB,SB,320,121,"41,086","1,024",Scheibbs,NO
+Schwaz,b,AT.TR.SZ,SZ,709,335,"79,247","1,842",Schwaz,TR
+Spittal an der Drau,b,AT.KA.SP,SP,206,212,"78,437","2,764",Spittal an der Drau,KA
+Steyr,s,AT.OO.SR,SR,402,314,"38,215",27,Steyr,OO
+Steyr Land,b,AT.OO.SE,SE,415,314,"58,751",973,Steyr,OO
+Südoststeiermark,b,AT.ST.SO,SO,623,224,"89,617","1,069",Feldbach,ST
+Tamsweg,b,AT.SZ.TA,TA,505,321,"20,555","1,020",Tamsweg,SZ
+Tulln,b,AT.NO.TU,TU,321,126,"71,023",658,Tulln,NO
+Urfahr Umgebung,b,AT.OO.UU,UU,416,"312,313","81,491",650,Linz,OO
+Villach,s,AT.KA.VI,VI,202,211,"59,458",135,Villach,KA
+Villach Land,b,AT.KA.VL,VL,207,211,"64,696","1,009",Villach,KA
+Vöcklabruck,b,AT.OO.VB,VB,417,315,"130,520","1,085",Vöcklabruck,OO
+Voitsberg,b,AT.ST.VO,VO,616,225,"52,116",679,Voitsberg,ST
+Völkermarkt,b,AT.KA.VK,VK,208,213,"42,324",908,Völkermarkt,KA
+Waidhofen an der Thaya,b,AT.NO.WT,WT,322,124,"26,737",669,Waidhofen an der Thaya,NO
+Waidhofen an der Ybbs,s,AT.NO.WY,WY,303,121,"11,469",131,Waidhofen an der Ybbs,NO
+Weiz,b,AT.ST.WZ,WZ,617,224,"87,888","1,071",Weiz,ST
+Wels,s,AT.OO.WE,WE,403,312,"58,709",46,Wels,OO
+Wels Land,b,AT.OO.WL,WL,418,312,"67,961",458,Wels,OO
+Wien,s,AT.WI.WS,W,901,130,"1,724,381",415,Wien,WI
+Wiener Neustadt,s,AT.NO.WN,WN,304,122,"41,469",61,Wiener Neustadt,NO
+Wiener Neustadt Land,b,AT.NO.WB,WB,323,122,"75,151",972,Wiener Neustadt,NO
+Wien Umgebung,b,AT.NO.WU,WU,324,"126,127","115,175",485,Wien,NO
+Wolfsberg,b,AT.KA.WO,WO,209,213,"54,101",974,Wolfsberg,KA
+Zell am See,b,AT.SZ.ZE,ZE,506,322,"84,865","2,642",Zell am See,SZ
+Zwettl,b,AT.NO.ZT,ZT,325,124,"43,769","1,399",Zwettl,NO

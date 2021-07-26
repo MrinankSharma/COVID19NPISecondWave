@@ -15,6 +15,14 @@ argparser = argparse.ArgumentParser()
 add_argparse_arguments(argparser)
 args = argparser.parse_args()
 
+add_argparse_arguments(argparser)
+argparser.add_argument(
+    "--n_week",
+    dest="n_week",
+    type=int,
+    help="number of weeks to mask",
+)
+
 numpyro.set_host_device_count(args.num_chains)
 if __name__ == "__main__":
     print(f"Running Sensitivity Analysis {__file__} with config:")

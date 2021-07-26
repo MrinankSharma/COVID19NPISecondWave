@@ -251,7 +251,6 @@ class PreprocessedData(object):
             "Leisure Venues Closed",
             "Retail Closed",
             "Curfew",
-            "Childcare Closed",
             "Primary Schools Closed",
             "Secondary Schools Closed",
             "Universities Away",
@@ -559,8 +558,8 @@ class PreprocessedData(object):
         self,
         maximum_fraction_voc=0.1,
         new_variant_fraction_fname="../data/nuts3_new_variant_fraction.csv",
-        extra_days_cases=5,
-        extra_days_deaths=11,
+        extra_days_cases=0, #prev 5
+        extra_days_deaths=6, #prev 11
     ):
         """
         mask new variant
@@ -601,7 +600,6 @@ class PreprocessedData(object):
     def mask_reopening(self, option, npis_to_exclude=None):
         if npis_to_exclude is None:
             npis_to_exclude = [
-                "Childcare Closed",
                 "Primary Schools Closed",
                 "Secondary Schools Closed",
                 "Universities Away",
