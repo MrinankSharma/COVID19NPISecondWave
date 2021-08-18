@@ -1,0 +1,107 @@
+{
+  "description": "<p>Release</p>",
+  "license": "MIT License",
+  "title": "MrinankSharma/COVID19NPISecondWave: Understanding the effectiveness of government interventions against the resurgence of COVID-19 in Europe",
+  "version": "v1.0.0",
+  "upload_type": "software",
+  "publication_date": "2021-08-18",
+  "creators": [
+    {
+      "affiliation": "University of Oxford",
+      "name": "Mrinank Sharma"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Sören Mindermann"
+    },
+    {
+      "affiliation": "University of Oxford (External Collaborator)",
+      "name": "Charlie Rogers-Smith"
+    },
+    {
+      "affiliation": "University of Bristol",
+      "name": "Gavin Leech"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Benedict Snodin"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Janvi Ahuja"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Jonas Sandbrink"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Joshua Teperowski Monrad"
+    },
+    {
+      "affiliation": "Manchester University NHS Foundation Trust",
+      "name": "George Altman"
+    },
+    {
+      "affiliation": "The Francis Crick Institute & The Univeristy of Warwick",
+      "name": "Gurpreet Dhaliwal"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Lukas Finnveden"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Alexander John Norman"
+    },
+    {
+      "affiliation": "University of Cambridge",
+      "name": "Sebastian Oehm"
+    },
+    {
+      "affiliation": "University of Essen",
+      "name": "Julia Fabienne Sandkühler"
+    },
+    {
+      "affiliation": "University of Bristol",
+      "name": "Laurence Aitchison"
+    },
+    {
+      "affiliation": "Independent Researcher",
+      "name": "Tomáš Gavenčiak"
+    },
+    {
+      "affiliation": "Imperial College London",
+      "name": "Thomas Mellan"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Jan Kulveit"
+    },
+    {
+      "affiliation": "Imperial College London",
+      "name": "Leonid Chindelevitch"
+    },
+    {
+      "affiliation": "Imperial College London",
+      "name": "Seth Flaxman"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Yarin Gal"
+    },
+    {
+      "affiliation": "Imperial College London",
+      "name": "Swapnil Mishra"
+    },
+    {
+      "affiliation": "Imperial College London & University of Copenhagen",
+      "name": "Samir Bhatt"
+    },
+    {
+      "affiliation": "University of Oxford",
+      "name": "Jan M. Brauner"
+    }
+  ],
+  "access_right": "open"
+}

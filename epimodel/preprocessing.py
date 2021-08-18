@@ -261,6 +261,7 @@ class PreprocessedData(object):
             if agg_type == "stricter":
                 cm_a_vals = active_cms[:, cm_a_ind, :]
                 cm_a_vals[cm_a_vals == 0] = np.inf
+
                 cm_b_vals = active_cms[:, cm_b_ind, :]
                 cm_b_vals[cm_b_vals == 0] = np.inf
 
