@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/317607935.svg)](https://zenodo.org/badge/latestdoi/317607935)]
+[![DOI](https://zenodo.org/badge/317607935.svg)](https://zenodo.org/badge/latestdoi/317607935)
 
 # Code for: Understanding the effectiveness of government interventions in Europe's second wave of COVID-19
 
