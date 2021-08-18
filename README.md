@@ -1,6 +1,6 @@
 # Code for: Understanding the effectiveness of government interventions in Europe's second wave of COVID-19
 
-This repo contains the code for [Sharma et al. (2021), *Understanding the effectiveness of government interventions in Europe’s second wave of COVID-19*](https://www.medrxiv.org/content/10.1101/2021.03.25.21254330v1). **Note**: this paper is a preprint and has not yet been peer-reviewed.  
+This repo contains the code for [Sharma et al. (2021), *Understanding the effectiveness of government interventions in Europe’s second wave of COVID-19*](https://www.medrxiv.org/content/10.1101/2021.03.25.21254330v1).
 
 # Installation
 We use Poetry for dependency management and use Python 3.8. Please see [Python Poetry](https://python-poetry.org/) for installation instructions for poetry. 
