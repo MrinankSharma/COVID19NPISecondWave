@@ -20,9 +20,6 @@ Other notes:
 * `epimodel/distributions/asymmetric_laplace` contains the asymmetric laplace distribution, used for the NPI prior. 
 
 # Reproducing Results
-**Note: this repo currently only contains synthetic data. The real data is available upon request. Please email Jan Brauner at jan.brauner at cs dot ox dot ac dot uk**
-
-
 An example main model run is in ``notebooks/final_results/main_results.ipynb``. 
 
 ```
